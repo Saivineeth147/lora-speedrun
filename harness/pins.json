@@ -1,0 +1,15 @@
+{
+  "base_model": "Qwen/Qwen2.5-1.5B",
+  "base_model_sha": "8faed761d45a263340a0528343f099c05c9a4323",
+  "model_file_sha256": {
+    "model.safetensors": "a961db72e75d52b18e6b0c9d379e51a26973b233385e0e127fdda7d648aec796",
+    "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+    "config.json": "0e8c8aa86468aba09c9d32157ff4bc2301c7e6c50e4398960425b2ea71e66f77"
+  },
+  "dataset": "openai/gsm8k",
+  "dataset_sha": "740312add88f781978c0658806c59bc2815b9866",
+  "train_examples": 7473,
+  "test_examples": 1319,
+  "train_content_sha256": "fdc58f1503bb55a38bf58fd7907f0c57770dc5893bd03e450e10689be9c69b82",
+  "test_content_sha256": "4a02f867644e4fed9043efc642e819c96a93bfb7c5e3b9bb34cdfeb44a0405b0"
+}
