@@ -70,3 +70,5 @@ merge, because scoring integrity depends on it. Typos and docs merge fast.
 
 Open a GitHub issue or discussion. Rule-interpretation questions get answered publicly and
 folded back into TASK.md so the rulebook stays complete.
+
+<!-- pipeline dry-run marker: this line tests the /verify path gate and will not be merged -->
