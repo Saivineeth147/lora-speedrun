@@ -1,4 +1,4 @@
-# Task Spec — Track v1: `gsm8k-qwen2.5-1.5b-rtx4090`
+# Task Spec — Track v1: `gsm8k-qwen2.5-1.5b-l40s`
 
 This document is the human-readable rulebook. The machine-readable values live in
 [`spec.yaml`](./spec.yaml), which the harness enforces. If they ever disagree, `spec.yaml` wins.
@@ -27,7 +27,7 @@ time of your training run.** Lower is better.
 | Training data | `openai/gsm8k`, config `main`, **train split only** (7,473 examples) |
 | Eval | GSM8K test (1,319 problems), protocol below |
 | Target | ≥ 57.5% exact-match *(provisional — see Freeze status)* |
-| Hardware | 1× NVIDIA GeForce RTX 4090, 24 GB |
+| Hardware | 1× NVIDIA L40S (48 GB), Modal sandbox, network-blocked |
 | Trainable params | ≤ 30,000,000, adapter-only |
 | Run limit | Training must finish in ≤ 60 minutes or it won't be verified |
 
@@ -36,7 +36,13 @@ time of your training run.** Lower is better.
 Wall-clock of the training process: from the moment the harness launches
 `python train.py ...` to the moment it exits — model loading, tokenization, training,
 adapter saving, everything. Model and dataset downloads are **not** timed: the harness
-prefetches them (`harness/prefetch.py`) and runs training with `HF_HUB_OFFLINE=1`.
+prefetches them into a cache volume (`harness/prefetch.py`) and runs training fully
+offline (`HF_HUB_OFFLINE=1` plus a network-blocked sandbox). Sandbox/container startup
+is not timed either — the clock starts when your process launches inside the running
+sandbox (`harness/modal_verify.py`).
+
+Official times come from the Modal L40S only. Local runs (any GPU) are great for
+iteration but are never leaderboard times.
 
 Evaluation is not timed (it's identical for everyone), but it is run by the harness
 immediately after training, and it is what decides pass/fail.
@@ -94,10 +100,13 @@ Implemented in [`harness/evaluate_gsm8k.py`](./harness/evaluate_gsm8k.py). No va
 
 Gray areas: open an issue *before* submitting. Maintainer rulings get added to this file.
 
-## Verification (summary — full protocol in JUDGING.md)
+## Verification (summary — full protocol in JUDGING.md, security model in SECURITY.md)
 
-1. Verifier reruns your `train.py` 3× with fresh seeds on a spec-matching 4090, pinned env.
-2. All 3 runs must clear target. Official time = mean of the 3 training wall-clocks.
-3. Adapter param count audited from the safetensors file; base model checksum re-verified.
-4. Code review of the technique for rule compliance.
+1. An automated Claude security screen reviews your diff and posts findings publicly.
+2. A maintainer reviews your code, then triggers `/verify`: your `train.py` reruns 3×
+   with fresh seeds inside a network-blocked Modal sandbox on the spec L40S, pinned env
+   (`env.lock`), pinned artifacts (`harness/pins.json`).
+3. All 3 runs must clear target. Official time = mean of the 3 training wall-clocks.
+4. Adapter param count audited from the safetensors file; base model and dataset content
+   hashes re-verified in a fresh sandbox before every eval (anti-tampering).
 5. Public verification report posted on the PR and committed to `records/verifications/`.

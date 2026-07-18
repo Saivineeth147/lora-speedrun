@@ -4,13 +4,15 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
-**How fast can you LoRA-fine-tune [Qwen2.5-1.5B](https://huggingface.co/Qwen/Qwen2.5-1.5B) to ≥ 57.5% on GSM8K — on a single RTX 4090?**
+**How fast can you LoRA-fine-tune [Qwen2.5-1.5B](https://huggingface.co/Qwen/Qwen2.5-1.5B) to ≥ 57.5% on GSM8K — on a single L40S?**
 
 This is [modded-nanogpt](https://github.com/KellerJordan/modded-nanogpt) for fine-tuning: a
 frozen task, frozen hardware, and a public leaderboard of wall-clock records. Every record is
-independently re-run 3× by a maintainer on identical hardware before it counts.
+independently re-run 3× with fresh seeds on identical hardware before it counts.
 
-A full verified attempt costs **under $2** of rented GPU time. Anyone can compete.
+**Attempting and verifying are free**: official timing runs on a Modal L40S sandbox, and
+Modal's free monthly compute credits cover full runs — so anyone can compete, and anyone
+can re-verify any record with one command.
 
 ## Leaderboard
 
@@ -31,7 +33,7 @@ Full history with verification reports: [records/RECORDS.md](./records/RECORDS.m
 | **Base model** | `Qwen/Qwen2.5-1.5B` (base, not instruct) — frozen |
 | **Training data** | GSM8K `train` split (7,473 examples) — the *only* allowed data |
 | **Goal** | ≥ **57.5%** exact-match on GSM8K `test` (0-shot, greedy, strict `#### N` extraction) |
-| **Hardware** | 1× RTX 4090 (24 GB) |
+| **Hardware** | 1× NVIDIA L40S (48 GB) — Modal sandbox, network-blocked |
 | **Metric** | **Wall-clock time of your training run.** Lower is better. |
 | **Constraint** | Base weights frozen; PEFT adapter only, ≤ 30M trainable params |
 
@@ -52,33 +54,43 @@ The nanoGPT speedrun fixed this for pretraining and produced real science (Muon 
 it). This repo does the same for parameter-efficient fine-tuning: one frozen task, one GPU,
 wall-clock time, receipts required.
 
-## Quickstart: run the baseline
+## Quickstart
 
-Rent a single RTX 4090 (Vast.ai / RunPod, PyTorch CUDA 12.x image, ≥ 50 GB disk), then:
+**Official-hardware run (free).** Make a [Modal](https://modal.com) account, then:
 
 ```bash
 git clone https://github.com/Saivineeth147/lora-speedrun && cd lora-speedrun
-bash scripts/setup_gpu.sh          # installs deps, prefetches model + data, writes env.lock
+pip install modal pyyaml && modal setup      # one-time browser auth
 
-# one timed, evaluated attempt of the baseline:
-python harness/run_submission.py submissions/000-baseline --runs 1
+python harness/modal_verify.py --prefetch    # one-time: cache model + data in a volume
 
-# full record-style verification (3 seeds, all must pass):
-python harness/run_submission.py submissions/000-baseline --runs 3
+# one timed, evaluated attempt of the baseline on the exact spec hardware:
+python harness/modal_verify.py --submission submissions/000-baseline --runs 1
+
+# full record-style verification (3 fresh seeds, all must pass):
+python harness/modal_verify.py --submission submissions/000-baseline --runs 3
 ```
+
+**Local iteration (optional).** Any 24 GB+ card runs the baseline for fast experimenting —
+`bash scripts/setup_gpu.sh`, then `python harness/run_submission.py submissions/000-baseline --runs 1`.
+Local times aren't official; the leaderboard clock is the Modal L40S.
 
 Then copy `submissions/TEMPLATE/`, make it faster, and open a PR. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## How records get verified
 
 1. You open a PR with your training script, config, notes, and self-reported numbers.
-2. A maintainer re-runs it **3× with fresh seeds** on the spec hardware using the pinned harness.
-3. All 3 runs must clear the target; official time is the mean.
-4. The maintainer reviews the technique itself (data audit, adapter param audit, code review)
-   and posts a public verification report + accept/reject reasoning on the PR before any merge.
+2. CI statically validates it, and an automated Claude security screen reviews the diff
+   (exfiltration attempts, network use, harness tampering, test-set contact) and posts
+   its findings publicly.
+3. A maintainer reviews the code, then comments `/verify` — which re-runs your submission
+   **3× with fresh seeds** in a network-blocked Modal sandbox on the spec L40S. All 3 runs
+   must clear the target; official time is the mean.
+4. The harness audits the adapter param count and re-verifies model/data content hashes
+   (anti-tampering), and the verification report is posted on the PR and committed to
+   [records/verifications/](./records/verifications/) with the accept/reject reasoning.
 
-The full protocol, rubric, and threat model are in [JUDGING.md](./JUDGING.md). Every
-verification report is committed under [records/verifications/](./records/verifications/).
+Full protocol, rubric, and threat model: [JUDGING.md](./JUDGING.md) · [SECURITY.md](./SECURITY.md).
 
 ## Ideas nobody has claimed yet
 
@@ -95,19 +107,22 @@ Claim one, beat the record, get your name on the board.
 **Why Qwen2.5-1.5B? Isn't it pretrained on math?** Probably, like every modern base model.
 It doesn't matter: the target is an *anchor*, not a claim about mathematical discovery. The
 race is the interesting part — same reason nanoGPT speedrunning targets an arbitrary val loss.
-It's also ungated, Apache-2.0, and trains comfortably in 24 GB.
+It's also ungated, Apache-2.0, and comfortable on a single card.
 
 **Why wall-clock instead of FLOPs or steps?** Because wall-clock is what you pay for, and it
 forces kernels, data loading, and algorithms to compete in the same currency. Same rule as
 modded-nanogpt.
 
-**Why a 4090 and not an H100?** So a verified attempt costs pocket change and the leaderboard
-is open to anyone, not just people with lab budgets.
+**Why an L40S on Modal instead of a 4090 or H100?** Three reasons. It's one consistent
+datacenter SKU, so times are actually comparable (rented consumer cards vary host-to-host).
+It's free to use via Modal's monthly credits, so competing and re-verifying costs nothing.
+And submissions are strangers' code — Modal sandboxes run them network-blocked and
+secretless. (The L40S is the same AD102 silicon as the 4090, so consumer-GPU tricks transfer.)
 
 **Can I train on other data / distill from a bigger model?** No. GSM8K train split only,
 no teacher models, no synthetic data. See [TASK.md](./TASK.md) for the full banned list.
 
-**Multiple GPUs?** No. One 4090. That's the point.
+**Multiple GPUs?** No. One L40S. That's the point.
 
 ## License
 

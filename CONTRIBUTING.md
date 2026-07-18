@@ -15,25 +15,28 @@ Two ways in: **submit a record attempt** (the fun one), or improve the harness/d
      and any extra pinned pip packages you need.
    - **`NOTES.md`** — what you changed vs. the current record and *why it works*
      (mechanism, not vibes). This is the part future readers learn from.
-4. Run the verification yourself first on a rented 4090:
+4. Run the verification yourself first — **on the exact spec hardware, for free**
+   (Modal's monthly credits cover it):
    ```bash
-   python harness/run_submission.py submissions/NNN-yourhandle --runs 3
+   pip install modal pyyaml && modal setup           # one-time
+   python harness/modal_verify.py --prefetch          # one-time
+   python harness/modal_verify.py --submission submissions/NNN-yourhandle --runs 3
    ```
    Put your 3 times/accuracies/seeds in the PR description. Don't commit adapter weights.
+   (Iterating locally on your own 24 GB+ card first is faster/cheaper for experiments —
+   `harness/run_submission.py` — but official times are Modal L40S only.)
 5. Open a PR titled: `[record] <handle> — <one-line technique> — <mm:ss self-reported>`
-
-No GPU access for a first try? Open the PR with `--runs 1` numbers from any 24 GB card and
-say so — if the approach looks plausible, verification will still run on spec hardware.
-It just moves slower in the queue.
 
 ## What happens next
 
-A maintainer will (usually within 72h):
-
-1. Statically validate your submission (CI does this on the PR automatically).
-2. Rerun it 3× with **fresh seeds** on a spec RTX 4090 with the pinned environment.
-3. Audit the adapter (param count, base checksum) and review your code against the rules.
-4. Post a **public verification report** on the PR: per-run times, accuracies, seeds,
+1. CI statically validates your submission, and an automated Claude security screen posts
+   a public assessment of your diff (this is advisory — see JUDGING.md).
+2. A maintainer reviews your code, then comments `/verify` (usually within 72h), which
+   reruns your submission 3× with **fresh seeds** in a network-blocked Modal sandbox on
+   the spec L40S with the pinned environment.
+3. The harness audits the adapter (param count) and re-verifies model/data content hashes;
+   the maintainer reviews the technique against the rules.
+4. The **public verification report** lands on the PR: per-run times, accuracies, seeds,
    hardware fingerprint, and an accept/reject verdict with reasoning.
 
 Outcomes:

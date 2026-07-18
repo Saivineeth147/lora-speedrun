@@ -3,7 +3,7 @@
 # Changing anything here after freeze requires a new track (v2). See TASK.md.
 
 version: 1
-track: gsm8k-qwen2.5-1.5b-rtx4090
+track: gsm8k-qwen2.5-1.5b-l40s
 
 base_model: Qwen/Qwen2.5-1.5B
 # Commit SHA is recorded in harness/pins.json by harness/prefetch.py and
@@ -22,9 +22,10 @@ target_accuracy: 0.575
 constraints:
   max_trainable_params: 30000000    # adapter-only; base weights stay frozen
   max_train_wallclock_minutes: 60   # runs longer than this are not verified
-  gpu: "NVIDIA GeForce RTX 4090"
+  gpu: "NVIDIA L40S"
   gpu_count: 1
-  vram_gb: 24
+  vram_gb: 48
+  platform: "Modal Sandbox (block_network=true) — see harness/modal_verify.py"
 
 eval:
   # Fixed evaluation protocol — identical for every submission.

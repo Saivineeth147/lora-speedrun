@@ -1,0 +1,104 @@
+# Maintainer comments "/verify" on a record-attempt PR -> this runs the official
+# 3x verification on Modal and posts the report back to the PR.
+#
+# Security invariants (do not weaken — see SECURITY.md):
+# - Only maintainers (write/admin) can trigger.
+# - PR code NEVER executes on this runner. We check out trusted main, then graft in
+#   ONLY the submissions/ directory from the PR head as data files.
+# - Refuses PRs that touch anything outside submissions/ (harness/workflow changes
+#   get manual review, never auto-run with secrets present).
+# - The submission executes inside a network-blocked Modal sandbox with no secrets.
+name: verify
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  verify:
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/verify')
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    concurrency:
+      group: verify-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.issue.number }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Gate — commenter must be a maintainer
+        run: |
+          perm=$(gh api "repos/$REPO/collaborators/${{ github.event.comment.user.login }}/permission" --jq .permission)
+          if [ "$perm" != "admin" ] && [ "$perm" != "write" ]; then
+            gh pr comment "$PR" --repo "$REPO" --body "⛔ \`/verify\` can only be triggered by maintainers."
+            exit 1
+          fi
+
+      - name: Checkout trusted main
+        uses: actions/checkout@v4
+
+      - name: Graft ONLY submissions/ from the PR head
+        id: graft
+        run: |
+          files=$(gh pr diff "$PR" --repo "$REPO" --name-only)
+          echo "PR touches:"; echo "$files"
+          if echo "$files" | grep -v '^submissions/' | grep -q .; then
+            gh pr comment "$PR" --repo "$REPO" --body "⛔ Auto-verify refused: this PR touches files outside \`submissions/\`. A maintainer will review and run verification manually."
+            exit 1
+          fi
+          if echo "$files" | grep -q '^submissions/TEMPLATE/'; then
+            gh pr comment "$PR" --repo "$REPO" --body "⛔ Auto-verify refused: PR modifies the TEMPLATE."
+            exit 1
+          fi
+          dirs=$(echo "$files" | cut -d/ -f2 | sort -u)
+          if [ "$(echo "$dirs" | wc -l)" -ne 1 ]; then
+            gh pr comment "$PR" --repo "$REPO" --body "⛔ Auto-verify refused: PR must contain exactly one submission directory."
+            exit 1
+          fi
+          git fetch origin "pull/$PR/head:prhead"
+          git checkout prhead -- submissions/
+          echo "dir=$dirs" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Static validation
+        run: |
+          pip install pyyaml
+          python harness/validate_submission.py "submissions/${{ steps.graft.outputs.dir }}"
+
+      - name: Announce start
+        run: |
+          gh pr comment "$PR" --repo "$REPO" --body "🏁 Verification started for \`submissions/${{ steps.graft.outputs.dir }}\` — 3 fresh-seed runs on Modal ${{ vars.SPEC_GPU || 'L40S' }} (network-blocked sandbox). Report will be posted here."
+
+      - name: Run official verification on Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: |
+          pip install modal
+          python harness/modal_verify.py --submission "submissions/${{ steps.graft.outputs.dir }}" \
+            --runs 3 --save-report verification-report.md
+
+      - name: Post report
+        if: always()
+        run: |
+          if [ -f verification-report.md ]; then
+            gh pr comment "$PR" --repo "$REPO" --body-file verification-report.md
+          else
+            gh pr comment "$PR" --repo "$REPO" --body "❌ Verification errored before producing a report — see the [workflow log](https://github.com/$REPO/actions/runs/${{ github.run_id }})."
+          fi
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-${{ github.event.issue.number }}
+          path: |
+            verification-report.md
+            runs/**/report.json
+          if-no-files-found: ignore

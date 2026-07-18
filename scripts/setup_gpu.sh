@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# One-shot setup on a fresh GPU box (Vast.ai / RunPod PyTorch CUDA 12.x image).
-# Installs the pinned env, prefetches model + data, freezes the env lock.
+# One-shot setup on your OWN GPU box (any 24GB+ CUDA card) for LOCAL ITERATION.
+# Official leaderboard timing runs on Modal (harness/modal_verify.py) — local times
+# are for experimenting only. Installs deps, prefetches model + data.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

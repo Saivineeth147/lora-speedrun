@@ -15,6 +15,6 @@ achievable, (b) calibrate the frozen target, and (c) be beaten.
 - No quantization, no custom kernels, no `torch.compile`, no fused cross-entropy.
 - Conservative LR (2e-4) and a long schedule. Short aggressive schedules are unexplored.
 
-**Reproducibility:** any 24 GB card runs this comfortably; timing on non-4090 hardware
-is not comparable. Verified numbers and seeds are in the verification report linked from
-the leaderboard.
+**Reproducibility:** any 24 GB+ card runs this comfortably for local iteration; official
+timing is the Modal L40S sandbox only. Verified numbers and seeds are in the verification
+report linked from the leaderboard.
