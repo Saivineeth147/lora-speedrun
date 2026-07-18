@@ -19,6 +19,7 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
+      id-token: write   # required by claude-code-action's OIDC exchange
     steps:
       - name: Checkout trusted main (never the PR head)
         uses: actions/checkout@v4
