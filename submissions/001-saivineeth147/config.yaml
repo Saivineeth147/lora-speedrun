@@ -1,0 +1,21 @@
+author: Sai Vineeth
+github: Saivineeth147
+description: "Sequence packing + completion-only loss masking; 2 epochs. Beats the baseline by eliminating padding and prompt-token loss."
+base_model: Qwen/Qwen2.5-1.5B
+technique: lora + packing + completion-only-masking
+
+hyperparameters:
+  rank: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  learning_rate: 2.0e-4
+  schedule: cosine, warmup_ratio 0.03
+  optimizer: adamw_torch_fused
+  epochs_or_steps: 2 epochs
+  effective_batch_size: 32 packs (4 x grad_accum 8)
+  pack_len: 1024
+  loss: completion-only (prompt tokens masked to -100)
+  max_seq_len: 1024 (packed)
+
+extra_pip_packages: []
