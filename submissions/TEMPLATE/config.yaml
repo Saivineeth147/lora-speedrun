@@ -1,0 +1,33 @@
+# Copy this folder to submissions/NNN-<your-github-handle>/ and fill everything in.
+# CI rejects submissions with missing keys. See TASK.md for the rules.
+
+author: ""            # your name or handle
+github: ""            # your GitHub handle (no @)
+description: ""       # one line: the technique in plain words, e.g. "sequence packing + rsLoRA r=8"
+base_model: Qwen/Qwen2.5-1.5B   # must match spec.yaml exactly — do not change
+technique: ""         # short slug: lora / qlora / dora / rslora / custom / ...
+
+# Every hyperparameter someone needs to understand your run. Add keys freely.
+hyperparameters:
+  rank: null
+  alpha: null
+  target_modules: []
+  learning_rate: null
+  schedule: ""
+  optimizer: ""
+  epochs_or_steps: null
+  effective_batch_size: null
+  max_seq_len: null
+  other: ""
+
+# Extra pip packages beyond requirements.txt — must be open-source and pinned (pkg==x.y.z).
+# Installed before timing starts. Empty list if none.
+extra_pip_packages: []
+
+# Your own 3-run verification on a 4090 (harness/run_submission.py --runs 3).
+# The official numbers come from the maintainer rerun, but report yours here.
+self_reported:
+  mean_train_seconds: null
+  accuracies: []
+  seeds: []
+  gpu: ""

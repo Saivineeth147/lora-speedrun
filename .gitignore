@@ -1,0 +1,16 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# run outputs and cached data — never committed
+runs/
+data/
+wandb/
+
+# model weights never belong in this repo (adapters are re-produced by the harness)
+*.safetensors
+*.bin
+*.pt
+*.gguf

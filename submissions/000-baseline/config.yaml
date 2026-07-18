@@ -1,0 +1,21 @@
+author: Sai Vineeth
+github: Saivineeth147
+description: "Baseline: plain LoRA r=16 on all linear layers, 3 epochs, cosine LR. No tricks."
+base_model: Qwen/Qwen2.5-1.5B
+technique: lora
+
+hyperparameters:
+  rank: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  trainable_params: ~18.4M (cap is 30M)
+  learning_rate: 2.0e-4
+  schedule: cosine, warmup_ratio 0.03
+  optimizer: adamw_torch_fused
+  epochs: 3
+  effective_batch_size: 128 (16 x grad_accum 8)
+  max_seq_len: 768
+  dtype: bf16, TF32 matmul on, sdpa attention
+
+extra_pip_packages: []   # none beyond requirements.txt

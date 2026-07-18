@@ -1,0 +1,24 @@
+{
+  "_comment": "Canonical record history. Edit this file, then run scripts/update_leaderboard.py to regenerate README + RECORDS.md. CI fails if they drift.",
+  "records": [
+    {
+      "id": 0,
+      "status": "pending-verification",
+      "date": null,
+      "author": "Saivineeth147",
+      "github": "Saivineeth147",
+      "submission": "submissions/000-baseline",
+      "description": "Baseline: plain LoRA r=16 on all linear layers, 3 epochs, cosine LR. No tricks.",
+      "time_seconds_mean": null,
+      "times_seconds": [],
+      "accuracies": [],
+      "seeds": [],
+      "hardware": "1x RTX 4090",
+      "verified_by": null,
+      "verification_report": null,
+      "pr": null,
+      "notes": "Baseline verification runs scheduled 2026-07-19; the provisional target freezes from this run (see TASK.md)."
+    }
+  ],
+  "notable_attempts": []
+}

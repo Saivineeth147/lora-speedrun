@@ -1,0 +1,42 @@
+# LoRA Speedrun — frozen task spec v1 (machine-readable, single source of truth).
+# The harness, CI validator, and leaderboard scripts all read this file.
+# Changing anything here after freeze requires a new track (v2). See TASK.md.
+
+version: 1
+track: gsm8k-qwen2.5-1.5b-rtx4090
+
+base_model: Qwen/Qwen2.5-1.5B
+# Commit SHA is recorded in harness/pins.json by harness/prefetch.py and
+# committed at spec freeze. Verification runs enforce it.
+
+dataset:
+  repo: openai/gsm8k
+  config: main
+  train_split: train        # 7,473 examples — the ONLY allowed training data
+  eval_split: test          # 1,319 problems — touching this during training = ban
+
+# PROVISIONAL until baseline freeze (see TASK.md "Freeze status").
+# Will be frozen after 3 baseline runs on the spec hardware.
+target_accuracy: 0.575
+
+constraints:
+  max_trainable_params: 30000000    # adapter-only; base weights stay frozen
+  max_train_wallclock_minutes: 60   # runs longer than this are not verified
+  gpu: "NVIDIA GeForce RTX 4090"
+  gpu_count: 1
+  vram_gb: 24
+
+eval:
+  # Fixed evaluation protocol — identical for every submission.
+  prompt_format: "Question: {question}\nAnswer:"
+  decoding: greedy
+  dtype: bfloat16
+  max_new_tokens: 512
+  batch_size: 64
+  answer_regex: '####\s*([-+]?[\d,]*\.?\d+)'
+
+verification:
+  n_runs: 3
+  seeds: fresh-per-verification   # chosen by the verifier at rerun time, recorded in the report
+  pass_rule: all_runs_must_clear_target
+  official_time: mean_of_runs
