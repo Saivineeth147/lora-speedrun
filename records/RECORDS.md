@@ -7,7 +7,7 @@ its submission folder and its public verification report.
 
 | # | Date | Author | Train time | GSM8K | Δ | Technique |
 |---|------|--------|-----------|-------|---|-----------|
-| 0 | _pending_ | [@Saivineeth147](https://github.com/Saivineeth147) | _pending_ | _pending_ | — | Baseline: plain LoRA r=16 on all linear layers, 3 epochs, cosine LR. No tricks. |
+| 0 | 2026-07-18 | [@Saivineeth147](https://github.com/Saivineeth147) | 11m 57s | 59.4% | — | Baseline: plain LoRA r=16 on all linear layers, 3 epochs, cosine LR. No tricks. ([report](records/verifications/000-baseline.md)) |
 
 ## Notable attempts
 
