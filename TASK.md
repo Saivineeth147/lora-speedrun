@@ -45,6 +45,10 @@ sandbox (`harness/modal_verify.py`).
 Official times come from the Modal L40S only. Local runs (any GPU) are great for
 iteration but are never leaderboard times.
 
+The harness sets `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` for every run to
+avoid allocator-fragmentation OOM warnings on sandbox cold starts. It affects memory
+management only (not training math), and is identical for all submissions.
+
 Evaluation is not timed (it's identical for everyone), but it is run by the harness
 immediately after training, and it is what decides pass/fail.
 

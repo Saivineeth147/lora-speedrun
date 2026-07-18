@@ -67,7 +67,10 @@ def count_adapter_params(adapter_dir: Path) -> int:
 
 def one_run(submission_dir: Path, seed: int, run_dir: Path) -> dict:
     run_dir.mkdir(parents=True, exist_ok=True)
-    env = dict(os.environ, HF_HUB_OFFLINE="1", TRANSFORMERS_OFFLINE="1", HF_DATASETS_OFFLINE="1")
+    env = dict(os.environ, HF_HUB_OFFLINE="1", TRANSFORMERS_OFFLINE="1",
+               HF_DATASETS_OFFLINE="1",
+               # avoid allocator fragmentation -> transient OOM warnings; no effect on results
+               PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True")
     cmd = [sys.executable, str(submission_dir / "train.py"),
            "--data-dir", str(REPO_ROOT / "data" / "gsm8k_train"),
            "--output-dir", str(run_dir),

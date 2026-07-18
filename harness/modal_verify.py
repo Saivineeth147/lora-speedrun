@@ -43,7 +43,12 @@ HF_HOME = f"{CACHE}/hf"
 DATA = f"{CACHE}/data"
 OUT = f"{CACHE}/out"
 
+# PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True prevents allocator fragmentation that
+# otherwise triggers transient (recoverable) OOM warnings on some sandbox cold starts.
+# It affects memory management only — not training math or results — and is applied
+# identically to every submission, so it does not advantage anyone.
 OFFLINE_ENV = (f"export HF_HOME={HF_HOME} LORA_SPEEDRUN_DATA_DIR={DATA} "
+               f"PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True "
                f"HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_DATASETS_OFFLINE=1")
 
 BASE_DEPS = ["torch>=2.6.0", "transformers>=4.51.0", "peft>=0.15.0", "datasets>=3.2.0",
