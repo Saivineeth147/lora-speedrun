@@ -8,12 +8,13 @@ track (v2) with its own leaderboard, exactly like the nanoGPT speedrun's track s
 
 ## Freeze status
 
-- **FROZEN:** base model, dataset, eval protocol, hardware, constraints, verification rules.
-- **PROVISIONAL:** `target_accuracy` (currently 57.5%). It will be frozen immediately after
-  the maintainer's 3 baseline verification runs on the spec hardware (scheduled 2026-07-19),
-  set relative to what the naive baseline achieves so the bar is reachable but not free.
-  The freeze commit will be tagged `spec-v1-frozen`. Records submitted before the tag are
-  verified against the frozen value.
+**FROZEN in full as of 2026-07-18** (tag: `spec-v1-frozen`): base model, dataset, eval
+protocol, hardware, constraints, verification rules, and the target.
+
+The target (57.0%) was calibrated from the maintainer's baseline run on spec hardware
+(58.91% observed with textbook-default LoRA; ~2pts headroom for seed variance) — high
+enough that clearing it requires genuinely training the model, low enough that speed
+optimizations have room to be aggressive.
 
 ## The task
 
@@ -26,7 +27,7 @@ time of your training run.** Lower is better.
 | Base model | `Qwen/Qwen2.5-1.5B` — base, not instruct, revision pinned in `harness/pins.json` |
 | Training data | `openai/gsm8k`, config `main`, **train split only** (7,473 examples) |
 | Eval | GSM8K test (1,319 problems), protocol below |
-| Target | ≥ 57.5% exact-match *(provisional — see Freeze status)* |
+| Target | ≥ 57.0% exact-match — frozen |
 | Hardware | 1× NVIDIA L40S (48 GB), Modal sandbox, network-blocked |
 | Trainable params | ≤ 30,000,000, adapter-only |
 | Run limit | Training must finish in ≤ 60 minutes or it won't be verified |

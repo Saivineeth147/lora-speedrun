@@ -15,9 +15,9 @@ dataset:
   train_split: train        # 7,473 examples — the ONLY allowed training data
   eval_split: test          # 1,319 problems — touching this during training = ban
 
-# PROVISIONAL until baseline freeze (see TASK.md "Freeze status").
-# Will be frozen after 3 baseline runs on the spec hardware.
-target_accuracy: 0.575
+# FROZEN 2026-07-18 (tag: spec-v1-frozen). Calibrated from the maintainer's baseline
+# run on spec hardware (58.91% observed, minus ~2pts headroom for seed variance).
+target_accuracy: 0.570
 
 constraints:
   max_trainable_params: 30000000    # adapter-only; base weights stay frozen

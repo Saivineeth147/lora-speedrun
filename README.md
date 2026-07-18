@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
-**How fast can you LoRA-fine-tune [Qwen2.5-1.5B](https://huggingface.co/Qwen/Qwen2.5-1.5B) to ≥ 57.5% on GSM8K — on a single L40S?**
+**How fast can you LoRA-fine-tune [Qwen2.5-1.5B](https://huggingface.co/Qwen/Qwen2.5-1.5B) to ≥ 57% on GSM8K — on a single L40S?**
 
 This is [modded-nanogpt](https://github.com/KellerJordan/modded-nanogpt) for fine-tuning: a
 frozen task, frozen hardware, and a public leaderboard of wall-clock records. Every record is
@@ -32,7 +32,7 @@ Full history with verification reports: [records/RECORDS.md](./records/RECORDS.m
 |---|---|
 | **Base model** | `Qwen/Qwen2.5-1.5B` (base, not instruct) — frozen |
 | **Training data** | GSM8K `train` split (7,473 examples) — the *only* allowed data |
-| **Goal** | ≥ **57.5%** exact-match on GSM8K `test` (0-shot, greedy, strict `#### N` extraction) |
+| **Goal** | ≥ **57.0%** exact-match on GSM8K `test` (0-shot, greedy, strict `#### N` extraction) |
 | **Hardware** | 1× NVIDIA L40S (48 GB) — Modal sandbox, network-blocked |
 | **Metric** | **Wall-clock time of your training run.** Lower is better. |
 | **Constraint** | Base weights frozen; PEFT adapter only, ≤ 30M trainable params |
