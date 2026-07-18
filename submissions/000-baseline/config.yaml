@@ -14,7 +14,7 @@ hyperparameters:
   schedule: cosine, warmup_ratio 0.03
   optimizer: adamw_torch_fused
   epochs: 3
-  effective_batch_size: 128 (16 x grad_accum 8)
+  effective_batch_size: 128 (8 x grad_accum 16)
   max_seq_len: 768
   dtype: bf16, TF32 matmul on, sdpa attention
 
