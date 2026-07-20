@@ -62,6 +62,37 @@
       "pr": null,
       "notes": "Eliminates the baseline's padding waste (packing) and prompt-token loss (completion-only masking). Adapter identical to #0, so the gain is pure data-pipeline.",
       "track": "t1"
+    },
+    {
+      "id": 0,
+      "track": "t2",
+      "status": "verified",
+      "date": "2026-07-20",
+      "author": "Saivineeth147",
+      "github": "Saivineeth147",
+      "submission": "submissions/t2-000-baseline",
+      "description": "Track 2 baseline: plain LoRA r=16 on SQuAD, first 20k examples, 1 epoch, full-sequence loss. No tricks.",
+      "time_seconds_mean": 668.0,
+      "times_seconds": [
+        523.5,
+        527.2,
+        953.4
+      ],
+      "accuracies": [
+        0.776,
+        0.7762,
+        0.7738
+      ],
+      "seeds": [
+        83334717,
+        1182902862,
+        350590137
+      ],
+      "hardware": "Modal L40S (network-blocked sandbox)",
+      "verified_by": "Saivineeth147 (self-verified)",
+      "verification_report": "records/verifications/t2-000-baseline.md",
+      "pr": null,
+      "notes": "Seed record at track 2 freeze (tag spec-t2-frozen). Run 3 wall-clock inflated ~6min by volume I/O variance (disclosed in report); counts per frozen rules."
     }
   ],
   "notable_attempts": []

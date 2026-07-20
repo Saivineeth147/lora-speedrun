@@ -32,11 +32,11 @@ can re-verify any record with one command.
 
 ### Track 2 — SQuAD v1.1 · SmolLM2-1.7B · target ≥ 75.5% · 1× L40S
 
-**Current record:** _none yet — this track is open for its first record._
+**Current record: 11m 08s** by [@Saivineeth147](https://github.com/Saivineeth147) — Track 2 baseline: plain LoRA r=16 on SQuAD, first 20k examples, 1 epoch, full-sequence loss. No tricks.
 
 | # | Date | Author | Train time | GSM8K/EM | Δ | Technique |
 |---|------|--------|-----------|----------|---|-----------|
-| — | | | | | | _no entries yet_ |
+| 0 | 2026-07-20 | [@Saivineeth147](https://github.com/Saivineeth147) | 11m 08s | 77.5% | — | Track 2 baseline: plain LoRA r=16 on SQuAD, first 20k examples, 1 epoch, full-sequence loss. No tricks. ([report](records/verifications/t2-000-baseline.md)) |
 
 <!-- LEADERBOARD:END -->
 
