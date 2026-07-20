@@ -17,8 +17,9 @@ dataset:
   eval_split: validation    # 10,570 questions — touching this during training = ban
   local_prefix: squad       # data dirs: data/squad_train, data/squad_test
 
-# PROVISIONAL until t2 baseline freeze (same protocol as t1: baseline observed − ~2pts).
-target_accuracy: 0.60       # exact match (official SQuAD normalization)
+# FROZEN 2026-07-20 (tag: spec-t2-frozen). Calibrated from the maintainer's t2 baseline
+# on spec hardware (77.50% EM observed, minus ~2pts headroom for seed variance).
+target_accuracy: 0.755      # exact match (official SQuAD normalization)
 
 constraints:
   max_trainable_params: 30000000

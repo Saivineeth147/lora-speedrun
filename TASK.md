@@ -13,7 +13,7 @@ than one — single-track wins are real records but weaker evidence of transfer.
 | Track | Base model | Task / data | Metric | Status |
 |---|---|---|---|---|
 | **t1** | Qwen/Qwen2.5-1.5B | GSM8K math (train split only) | ≥ 57.0% exact-match | **frozen** (`spec-v1-frozen`) |
-| **t2** | HuggingFaceTB/SmolLM2-1.7B | SQuAD v1.1 extractive QA (train split only) | ≥ 60% EM *(provisional)* | freezing at t2 baseline |
+| **t2** | HuggingFaceTB/SmolLM2-1.7B | SQuAD v1.1 extractive QA (train split only) | ≥ 75.5% EM | **frozen** (`spec-t2-frozen`) |
 
 Hardware (1× L40S, Modal network-blocked sandbox), the ≤30M adapter-param cap, the
 60-minute run limit, and the 3-fresh-seed verification protocol are identical across
@@ -147,7 +147,7 @@ identical to Track 1 — reread those sections with "SQuAD train split" substitu
 | Base model | `HuggingFaceTB/SmolLM2-1.7B` — base, ungated, revision pinned in `harness/pins-t2.json` |
 | Training data | `rajpurkar/squad` (SQuAD v1.1), **train split only** (87,599 examples — any subset/order/format) |
 | Eval | SQuAD v1.1 validation (10,570 questions), fixed protocol below |
-| Target | ≥ 60% exact match *(PROVISIONAL — freezes from the t2 baseline runs, same protocol as t1: observed − ~2pts)* |
+| Target | ≥ 75.5% exact match — frozen (calibrated from the t2 baseline: 77.50% observed − ~2pts, same protocol as t1) |
 | Everything else | identical to Track 1 (hardware, caps, timing, verification) |
 
 ## Track 2 evaluation protocol (fixed)

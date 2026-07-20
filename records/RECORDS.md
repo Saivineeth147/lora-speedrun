@@ -14,7 +14,7 @@ submission folder and its public verification report.
 | 0 | 2026-07-18 | [@Saivineeth147](https://github.com/Saivineeth147) | 11m 57s | 59.4% | — | Baseline: plain LoRA r=16 on all linear layers, 3 epochs, cosine LR. No tricks. ([report](records/verifications/000-baseline.md)) |
 | 1 | 2026-07-18 | [@Saivineeth147](https://github.com/Saivineeth147) | 6m 05s | 61.1% | −49% | Sequence packing + completion-only loss masking, 2 epochs. Same LoRA config as #0; ~2x faster at higher accuracy. ([report](records/verifications/001-saivineeth147.md)) |
 
-## Track 2 — SQuAD v1.1 · SmolLM2-1.7B · target ≥ 60.0% · 1× L40S
+## Track 2 — SQuAD v1.1 · SmolLM2-1.7B · target ≥ 75.5% · 1× L40S
 
 **Current record:** _none yet — this track is open for its first record._
 
