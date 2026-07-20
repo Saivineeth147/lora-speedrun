@@ -1,0 +1,27 @@
+author: Piotr Migdał
+github: stared
+description: "1 epoch on the 4,000 shortest examples: packed blocks, chunked completion-only CE (no full logits), <<...>> annotations stripped, custom loop, load overlapped with tokenization."
+track: t1
+base_model: Qwen/Qwen2.5-1.5B
+technique: lora + data-pruning + packing + chunked-completion-ce + 1-epoch
+
+hyperparameters:
+  rank: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  learning_rate: 4.0e-4
+  schedule: cosine to 5%, 8-step warmup
+  optimizer: adamw fused, betas (0.9, 0.95), no weight decay
+  epochs_or_steps: 1 epoch over the 4,000 shortest train examples (by tokenized length)
+  effective_batch_size: 8 packed blocks (8,192 tokens)
+  max_seq_len: 1024 (packed, full blocks only)
+  other: "GSM8K <<calculator>> annotations stripped (formatting); completion-only loss via chunked CE autograd.Function"
+
+extra_pip_packages: []
+
+self_reported:
+  mean_train_seconds: 98.5
+  accuracies: [0.5982, 0.5853, 0.6012]
+  seeds: [511124479, 1675983434, 100133981]
+  gpu: "Modal L40S (harness/modal_verify.py, network-blocked sandbox, 3 fresh seeds)"
