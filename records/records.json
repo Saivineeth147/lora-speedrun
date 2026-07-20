@@ -93,6 +93,68 @@
       "verification_report": "records/verifications/t2-000-baseline.md",
       "pr": null,
       "notes": "Seed record at track 2 freeze (tag spec-t2-frozen). Run 3 wall-clock inflated ~6min by volume I/O variance (disclosed in report); counts per frozen rules."
+    },
+    {
+      "id": 2,
+      "track": "t1",
+      "status": "verified",
+      "date": "2026-07-20",
+      "author": "Piotr Migda\u0142",
+      "github": "stared",
+      "submission": "submissions/002-pmigdal",
+      "description": "One 4e-4 epoch over 3,000 examples with 2x optimizer updates (integrated-LR), 512-token packs. First outside record.",
+      "time_seconds_mean": 113.0,
+      "times_seconds": [
+        112.4,
+        116.0,
+        110.5
+      ],
+      "accuracies": [
+        0.5845,
+        0.5982,
+        0.6042
+      ],
+      "seeds": [
+        1230150554,
+        737600345,
+        416179408
+      ],
+      "hardware": "Modal L40S (network-blocked sandbox)",
+      "verified_by": "Saivineeth147",
+      "verification_report": "records/verifications/002-pmigdal.md",
+      "pr": 10,
+      "notes": "First outside submission. Official rerun (113.0s) beat the self-report (122.2s)."
+    },
+    {
+      "id": 3,
+      "track": "t1",
+      "status": "verified",
+      "date": "2026-07-20",
+      "author": "Piotr Migda\u0142",
+      "github": "stared",
+      "submission": "submissions/003-pmigdal",
+      "description": "Shortest-4k data pruning, 1 aggressive-LR epoch, <<...>> annotations stripped, custom GPU-resident packed loop, chunked completion-only CE (no full logits).",
+      "time_seconds_mean": 104.0,
+      "times_seconds": [
+        105.3,
+        103.4,
+        103.4
+      ],
+      "accuracies": [
+        0.6088,
+        0.583,
+        0.6171
+      ],
+      "seeds": [
+        1618931918,
+        2048232357,
+        542430346
+      ],
+      "hardware": "Modal L40S (network-blocked sandbox)",
+      "verified_by": "Saivineeth147",
+      "verification_report": "records/verifications/003-pmigdal.md",
+      "pr": 11,
+      "notes": "Chunked completion-CE never materializes the 151k-vocab logits tensor. 11m57s -> 1m44s in three days across three records and two authors."
     }
   ],
   "notable_attempts": []
