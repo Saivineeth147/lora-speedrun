@@ -1,0 +1,29 @@
+author: Piotr Migdał
+github: pmigdal
+description: "One 4e-4 epoch over 3,000 examples with twice as many optimizer updates targets robust ~70% speedup."
+track: t1
+base_model: Qwen/Qwen2.5-1.5B
+technique: lora + short-packing + completion-only-masking
+
+hyperparameters:
+  rank: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  learning_rate: 4.0e-4
+  schedule: cosine, warmup_ratio 0.03
+  optimizer: adamw_torch_fused
+  epochs_or_steps: 1 epoch
+  train_examples: first 3000 of 7473
+  effective_batch_size: 32 packs (8 x grad_accum 4)
+  tokens_per_microbatch: approximately 4096 (8 x 512)
+  pack_len: 512
+  loss: completion-only (prompt tokens masked to -100)
+
+extra_pip_packages: []
+
+self_reported:
+  mean_train_seconds: 122.2
+  accuracies: [0.5959059893858984, 0.5966641394996209, 0.604245640636846]
+  seeds: [1095429334, 405987357, 2139737663]
+  gpu: NVIDIA L40S (Modal)
