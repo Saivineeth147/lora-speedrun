@@ -21,7 +21,14 @@ from datasets import load_dataset
 from huggingface_hub import HfApi, snapshot_download
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-COMMITTED_PINS = REPO_ROOT / "harness" / "pins.json"
+_spec_path = Path(os.environ.get("LORA_SPEEDRUN_SPEC", REPO_ROOT / "spec.yaml"))
+SPEC = yaml.safe_load((_spec_path if _spec_path.is_absolute() else REPO_ROOT / _spec_path).read_text())
+TRACK = SPEC.get("track_id", "t1")
+PINS_NAME = "pins.json" if TRACK == "t1" else f"pins-{TRACK}.json"
+HASH_SCHEME = "qa-v1" if TRACK == "t1" else "generic"
+DATA_PREFIX = SPEC["dataset"].get("local_prefix", "gsm8k")
+
+COMMITTED_PINS = REPO_ROOT / "harness" / PINS_NAME
 DATA_DIR = Path(os.environ.get("LORA_SPEEDRUN_DATA_DIR", REPO_ROOT / "data"))
 PINS_OUT = Path(os.environ.get("LORA_SPEEDRUN_PINS_OUT", COMMITTED_PINS))
 
@@ -39,13 +46,16 @@ def sha256_file(path: Path) -> str:
 def dataset_content_sha(ds) -> str:
     h = hashlib.sha256()
     for ex in ds:
-        h.update(ex["question"].encode())
-        h.update(ex["answer"].encode())
+        if HASH_SCHEME == "qa-v1":
+            h.update(ex["question"].encode())
+            h.update(ex["answer"].encode())
+        else:  # generic: stable JSON of the whole example
+            h.update(json.dumps(ex, sort_keys=True, ensure_ascii=False).encode())
     return h.hexdigest()
 
 
 def main():
-    spec = yaml.safe_load((REPO_ROOT / "spec.yaml").read_text())
+    spec = SPEC
     base_model = spec["base_model"]
     ds_repo, ds_config = spec["dataset"]["repo"], spec["dataset"]["config"]
 
@@ -71,10 +81,12 @@ def main():
     test = ds[spec["dataset"]["eval_split"]]
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     # Saved separately: timed training runs are handed ONLY the train directory.
-    train.save_to_disk(str(DATA_DIR / "gsm8k_train"))
-    test.save_to_disk(str(DATA_DIR / "gsm8k_test"))
+    train.save_to_disk(str(DATA_DIR / f"{DATA_PREFIX}_train"))
+    test.save_to_disk(str(DATA_DIR / f"{DATA_PREFIX}_test"))
 
     pins = {
+        "track_id": TRACK,
+        "hash_scheme": HASH_SCHEME,
         "base_model": base_model,
         "base_model_sha": model_sha,
         "model_file_sha256": model_hashes,
@@ -100,10 +112,10 @@ def main():
     else:
         PINS_OUT.parent.mkdir(parents=True, exist_ok=True)
         PINS_OUT.write_text(json.dumps(pins, indent=2) + "\n")
-        print(f"Wrote {PINS_OUT} — commit as harness/pins.json at spec freeze.")
+        print(f"Wrote {PINS_OUT} — commit as harness/{PINS_NAME} at spec freeze.")
 
-    print(f"\nPrefetch complete. Train: {DATA_DIR/'gsm8k_train'} ({len(train)} ex) · "
-          f"test: {DATA_DIR/'gsm8k_test'} ({len(test)} ex)")
+    print(f"\nPrefetch complete. Train: {DATA_DIR/(DATA_PREFIX+'_train')} ({len(train)} ex) · "
+          f"test: {DATA_DIR/(DATA_PREFIX+'_test')} ({len(test)} ex)")
 
 
 if __name__ == "__main__":

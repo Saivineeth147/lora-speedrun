@@ -18,4 +18,4 @@ jobs:
       - name: Leaderboard in sync with records.json
         run: python scripts/update_leaderboard.py --check
       - name: Harness compiles
-        run: python -m py_compile harness/*.py scripts/update_leaderboard.py submissions/000-baseline/train.py
+        run: python -m py_compile harness/*.py scripts/update_leaderboard.py submissions/000-baseline/train.py submissions/001-saivineeth147/train.py submissions/t2-000-baseline/train.py

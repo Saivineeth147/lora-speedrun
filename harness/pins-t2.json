@@ -1,0 +1,17 @@
+{
+  "track_id": "t2",
+  "hash_scheme": "generic",
+  "base_model": "HuggingFaceTB/SmolLM2-1.7B",
+  "base_model_sha": "effd688a12921b4cc83e3312b6feb579f70f9c71",
+  "model_file_sha256": {
+    "model.safetensors": "1193528982f4ac0c0b707ce36fd7dc03a0ef6f3e1a432deb886dce2e90c300c0",
+    "tokenizer.json": "9ca9acddb6525a194ec8ac7a87f24fbba7232a9a15ffa1af0c1224fcd888e47c",
+    "config.json": "33397f6af8090f7290f27ce6fb1cd23a95fd0915a5c648dfd10b6002aaf7fc48"
+  },
+  "dataset": "rajpurkar/squad",
+  "dataset_sha": "7b6d24c440a36b6815f21b70d25016731768db1f",
+  "train_examples": 87599,
+  "test_examples": 10570,
+  "train_content_sha256": "cb94be558ec6c714471bd33425653d39bc076ff68cff542c55a25793af5036c6",
+  "test_content_sha256": "eab8a6c55c8b9fdf0dbc07dc52ae5fcc76b242dbc2f52ddeab2ea4a090db0317"
+}

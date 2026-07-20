@@ -25,7 +25,9 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SPEC = yaml.safe_load((REPO_ROOT / "spec.yaml").read_text())
+_spec_path = Path(os.environ.get("LORA_SPEEDRUN_SPEC", REPO_ROOT / "spec.yaml"))
+SPEC = yaml.safe_load((_spec_path if _spec_path.is_absolute() else REPO_ROOT / _spec_path).read_text())
+DATA_PREFIX = SPEC["dataset"].get("local_prefix", "gsm8k")
 
 
 def sh(cmd):
@@ -72,7 +74,7 @@ def one_run(submission_dir: Path, seed: int, run_dir: Path) -> dict:
                # avoid allocator fragmentation -> transient OOM warnings; no effect on results
                PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True")
     cmd = [sys.executable, str(submission_dir / "train.py"),
-           "--data-dir", str(REPO_ROOT / "data" / "gsm8k_train"),
+           "--data-dir", str(REPO_ROOT / "data" / f"{DATA_PREFIX}_train"),
            "--output-dir", str(run_dir),
            "--seed", str(seed)]
     print(f"\n=== TRAIN seed={seed} -> {run_dir}\n$ {' '.join(cmd)}", flush=True)
@@ -91,9 +93,10 @@ def one_run(submission_dir: Path, seed: int, run_dir: Path) -> dict:
     cap = SPEC["constraints"]["max_trainable_params"]
 
     eval_out = run_dir / "eval.json"
+    evaluator = SPEC["eval"].get("evaluator", "gsm8k")
     print(f"=== EVAL {run_dir}", flush=True)
-    subprocess.run([sys.executable, str(REPO_ROOT / "harness" / "evaluate_gsm8k.py"),
-                    "--data-dir", str(REPO_ROOT / "data" / "gsm8k_test"),
+    subprocess.run([sys.executable, str(REPO_ROOT / "harness" / f"evaluate_{evaluator}.py"),
+                    "--data-dir", str(REPO_ROOT / "data" / f"{DATA_PREFIX}_test"),
                     "--adapter-dir", str(run_dir),
                     "--out", str(eval_out)], env=env, check=True)
     accuracy = json.loads(eval_out.read_text())["accuracy"]
@@ -113,7 +116,8 @@ def one_run(submission_dir: Path, seed: int, run_dir: Path) -> dict:
     return result
 
 
-def render_report(submission: str, runs: list, fp: dict, verdict: dict) -> str:
+def render_report(submission: str, runs: list, fp: dict, verdict: dict, spec: dict = None) -> str:
+    SPEC = spec or globals()["SPEC"]
     rows = "\n".join(
         f"| {i+1} | {r['seed']} | {r['train_seconds']:.1f}s | "
         f"{r.get('accuracy', '—')} | {'✅' if r['pass'] else '❌'} |"
@@ -170,7 +174,7 @@ def main():
     submission_dir = args.submission_dir.resolve()
     if not (submission_dir / "train.py").exists():
         raise SystemExit(f"{submission_dir} has no train.py")
-    if not (REPO_ROOT / "data" / "gsm8k_train").exists():
+    if not (REPO_ROOT / "data" / f"{DATA_PREFIX}_train").exists():
         raise SystemExit("data/ not prefetched — run: python harness/prefetch.py")
 
     seeds = ([int(s) for s in args.seeds.split(",")] if args.seeds

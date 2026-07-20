@@ -1,0 +1,45 @@
+# LoRA Speedrun — Track 2 spec (machine-readable, single source of truth for t2).
+# Deliberately contrasts Track 1: different model family (SmolLM2, not Qwen) and a
+# different task type (extractive QA, not math) — so techniques must TRANSFER to hold
+# records on both tracks. Same hardware, caps, and verification rules as Track 1.
+
+version: 1
+track_id: t2
+track: squad-smollm2-1.7b-l40s
+
+base_model: HuggingFaceTB/SmolLM2-1.7B
+# Commit SHA recorded in harness/pins-t2.json by prefetch; enforced at verification.
+
+dataset:
+  repo: rajpurkar/squad
+  config: plain_text
+  train_split: train        # 87,599 examples — the ONLY allowed training data
+  eval_split: validation    # 10,570 questions — touching this during training = ban
+  local_prefix: squad       # data dirs: data/squad_train, data/squad_test
+
+# PROVISIONAL until t2 baseline freeze (same protocol as t1: baseline observed − ~2pts).
+target_accuracy: 0.60       # exact match (official SQuAD normalization)
+
+constraints:
+  max_trainable_params: 30000000
+  max_train_wallclock_minutes: 60
+  gpu: "NVIDIA L40S"
+  gpu_count: 1
+  vram_gb: 48
+  platform: "Modal Sandbox (block_network=true) — see harness/modal_verify.py"
+
+eval:
+  # Fixed evaluation protocol — identical for every submission.
+  evaluator: squad          # harness/evaluate_squad.py
+  prompt_format: "Context: {context}\nQuestion: {question}\nAnswer:"
+  decoding: greedy
+  dtype: bfloat16
+  max_new_tokens: 32
+  batch_size: 128
+  metric: exact_match       # vs ANY gold answer, official SQuAD normalization
+
+verification:
+  n_runs: 3
+  seeds: fresh-per-verification
+  pass_rule: all_runs_must_clear_target
+  official_time: mean_of_runs

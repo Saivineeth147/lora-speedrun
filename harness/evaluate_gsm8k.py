@@ -11,6 +11,7 @@ Usage:
 
 import argparse
 import json
+import os
 import re
 import time
 from pathlib import Path
@@ -21,7 +22,8 @@ from datasets import load_from_disk
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SPEC = yaml.safe_load((REPO_ROOT / "spec.yaml").read_text())
+_spec_path = Path(os.environ.get("LORA_SPEEDRUN_SPEC", REPO_ROOT / "spec.yaml"))
+SPEC = yaml.safe_load((_spec_path if _spec_path.is_absolute() else REPO_ROOT / _spec_path).read_text())
 ANSWER_RE = re.compile(SPEC["eval"]["answer_regex"])
 
 

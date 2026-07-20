@@ -1,10 +1,27 @@
-# Task Spec — Track v1: `gsm8k-qwen2.5-1.5b-l40s`
+# Task Specs
 
-This document is the human-readable rulebook. The machine-readable values live in
-[`spec.yaml`](./spec.yaml), which the harness enforces. If they ever disagree, `spec.yaml` wins.
+This document is the human-readable rulebook. The machine-readable values live in the
+spec files ([`spec.yaml`](./spec.yaml) for Track 1, [`spec-t2.yaml`](./spec-t2.yaml) for
+Track 2), which the harness enforces. If they ever disagree, the spec files win.
 
-Once frozen, nothing here changes. New base model, dataset, target, or hardware = a new
-track (v2) with its own leaderboard, exactly like the nanoGPT speedrun's track system.
+## Tracks
+
+Records live per track; a frozen track never changes. Tracks are deliberately different
+model families and task types, so a technique only proves general by winning on more
+than one — single-track wins are real records but weaker evidence of transfer.
+
+| Track | Base model | Task / data | Metric | Status |
+|---|---|---|---|---|
+| **t1** | Qwen/Qwen2.5-1.5B | GSM8K math (train split only) | ≥ 57.0% exact-match | **frozen** (`spec-v1-frozen`) |
+| **t2** | HuggingFaceTB/SmolLM2-1.7B | SQuAD v1.1 extractive QA (train split only) | ≥ 60% EM *(provisional)* | freezing at t2 baseline |
+
+Hardware (1× L40S, Modal network-blocked sandbox), the ≤30M adapter-param cap, the
+60-minute run limit, and the 3-fresh-seed verification protocol are identical across
+tracks. Submissions declare their track in `config.yaml` (`track: t1` or `track: t2`).
+
+---
+
+# Track 1: `gsm8k-qwen2.5-1.5b-l40s`
 
 ## Freeze status
 
@@ -115,3 +132,39 @@ Gray areas: open an issue *before* submitting. Maintainer rulings get added to t
 4. Adapter param count audited from the safetensors file; base model and dataset content
    hashes re-verified in a fresh sandbox before every eval (anti-tampering).
 5. Public verification report posted on the PR and committed to `records/verifications/`.
+
+---
+
+# Track 2: `squad-smollm2-1.7b-l40s`
+
+Machine-readable spec: [`spec-t2.yaml`](./spec-t2.yaml). Everything not listed below
+(what is timed, submission contract, allowed/banned techniques, verification) is
+identical to Track 1 — reread those sections with "SQuAD train split" substituted for
+"GSM8K train split".
+
+| Item | Value |
+|---|---|
+| Base model | `HuggingFaceTB/SmolLM2-1.7B` — base, ungated, revision pinned in `harness/pins-t2.json` |
+| Training data | `rajpurkar/squad` (SQuAD v1.1), **train split only** (87,599 examples — any subset/order/format) |
+| Eval | SQuAD v1.1 validation (10,570 questions), fixed protocol below |
+| Target | ≥ 60% exact match *(PROVISIONAL — freezes from the t2 baseline runs, same protocol as t1: observed − ~2pts)* |
+| Everything else | identical to Track 1 (hardware, caps, timing, verification) |
+
+## Track 2 evaluation protocol (fixed)
+
+Implemented in [`harness/evaluate_squad.py`](./harness/evaluate_squad.py). No variations.
+
+- Prompt: `Context: {context}\nQuestion: {question}\nAnswer:` — 0-shot, no chat template.
+- Greedy, bf16, `max_new_tokens=32`, batch 128, generation truncated at hallucinated
+  continuations; prediction = first line.
+- Score: **exact match against ANY of the gold answers** using the official SQuAD
+  normalization (lowercase; strip punctuation, articles, extra whitespace).
+
+## Why this pairing
+
+Deliberate maximum contrast with Track 1: different model family (SmolLM2 vs Qwen —
+also sidesteps "Qwen is math-contaminated" concerns), different capability (reading
+comprehension vs math reasoning), different data shape (long context + short answer vs
+short question + long chain-of-thought). Techniques that transfer across both are
+probably real; techniques that don't are overfits to a setup — which is exactly what
+the track system exists to expose.

@@ -16,7 +16,10 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SPEC = yaml.safe_load((REPO_ROOT / "spec.yaml").read_text())
+SPECS = {}
+for f in REPO_ROOT.glob("spec*.yaml"):
+    s = yaml.safe_load(f.read_text())
+    SPECS[s.get("track_id", "t1")] = s
 
 REQUIRED_FILES = ["train.py", "config.yaml", "NOTES.md"]
 REQUIRED_CONFIG_KEYS = ["author", "github", "description", "base_model", "technique"]
@@ -42,9 +45,12 @@ def validate(sub_dir: Path) -> list:
     for key in REQUIRED_CONFIG_KEYS:
         if not cfg.get(key):
             errors.append(f"config.yaml missing/empty required key: {key}")
-    if cfg.get("base_model") and cfg["base_model"] != SPEC["base_model"]:
-        errors.append(f"base_model must be exactly '{SPEC['base_model']}' "
-                      f"(got '{cfg['base_model']}')")
+    track = cfg.get("track", "t1")
+    if track not in SPECS:
+        errors.append(f"unknown track '{track}' (available: {sorted(SPECS)})")
+    elif cfg.get("base_model") and cfg["base_model"] != SPECS[track]["base_model"]:
+        errors.append(f"base_model for track {track} must be exactly "
+                      f"'{SPECS[track]['base_model']}' (got '{cfg['base_model']}')")
 
     try:
         ast.parse((sub_dir / "train.py").read_text())

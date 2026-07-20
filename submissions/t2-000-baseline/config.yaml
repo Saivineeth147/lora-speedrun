@@ -1,0 +1,21 @@
+author: Sai Vineeth
+github: Saivineeth147
+description: "Track 2 baseline: plain LoRA r=16 on SQuAD, first 20k examples, 1 epoch. No tricks."
+track: t2
+base_model: HuggingFaceTB/SmolLM2-1.7B
+technique: lora
+
+hyperparameters:
+  rank: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  learning_rate: 2.0e-4
+  schedule: cosine, warmup_ratio 0.03
+  optimizer: adamw_torch_fused
+  epochs_or_steps: 1 epoch over the first 20,000 train examples (naive fixed subset)
+  effective_batch_size: 128 (8 x grad_accum 16)
+  max_seq_len: 640
+  loss: full-sequence (no completion masking — deliberately naive)
+
+extra_pip_packages: []

@@ -3,6 +3,7 @@
 # Changing anything here after freeze requires a new track (v2). See TASK.md.
 
 version: 1
+track_id: t1
 track: gsm8k-qwen2.5-1.5b-l40s
 
 base_model: Qwen/Qwen2.5-1.5B
@@ -14,6 +15,7 @@ dataset:
   config: main
   train_split: train        # 7,473 examples — the ONLY allowed training data
   eval_split: test          # 1,319 problems — touching this during training = ban
+  local_prefix: gsm8k       # data dirs: data/gsm8k_train, data/gsm8k_test
 
 # FROZEN 2026-07-18 (tag: spec-v1-frozen). Calibrated from the maintainer's baseline
 # run on spec hardware (58.91% observed, minus ~2pts headroom for seed variance).
@@ -29,6 +31,7 @@ constraints:
 
 eval:
   # Fixed evaluation protocol — identical for every submission.
+  evaluator: gsm8k          # harness/evaluate_gsm8k.py
   prompt_format: "Question: {question}\nAnswer:"
   decoding: greedy
   dtype: bfloat16

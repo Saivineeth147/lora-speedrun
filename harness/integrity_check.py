@@ -17,7 +17,11 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SPEC = yaml.safe_load((REPO_ROOT / "spec.yaml").read_text())
+_spec_path = Path(os.environ.get("LORA_SPEEDRUN_SPEC", REPO_ROOT / "spec.yaml"))
+SPEC = yaml.safe_load((_spec_path if _spec_path.is_absolute() else REPO_ROOT / _spec_path).read_text())
+TRACK = SPEC.get("track_id", "t1")
+PINS_NAME = "pins.json" if TRACK == "t1" else f"pins-{TRACK}.json"
+DATA_PREFIX = SPEC["dataset"].get("local_prefix", "gsm8k")
 
 
 def sha256_file(path: Path) -> str:
@@ -28,22 +32,26 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def dataset_content_sha(ds_dir: Path) -> str:
+def dataset_content_sha(ds_dir: Path, scheme: str) -> str:
     from datasets import load_from_disk
     ds = load_from_disk(str(ds_dir))
     h = hashlib.sha256()
     for ex in ds:
-        h.update(ex["question"].encode())
-        h.update(ex["answer"].encode())
+        if scheme == "qa-v1":
+            h.update(ex["question"].encode())
+            h.update(ex["answer"].encode())
+        else:  # generic: stable JSON of the whole example
+            h.update(json.dumps(ex, sort_keys=True, ensure_ascii=False).encode())
     return h.hexdigest()
 
 
 def main():
-    pins_path = REPO_ROOT / "harness" / "pins.json"
+    pins_path = REPO_ROOT / "harness" / PINS_NAME
     if not pins_path.exists():
-        print("INTEGRITY: SKIPPED (harness/pins.json not committed yet — pre-freeze mode)")
+        print(f"INTEGRITY: SKIPPED (harness/{PINS_NAME} not committed yet — pre-freeze mode)")
         return
     pins = json.loads(pins_path.read_text())
+    scheme = pins.get("hash_scheme", "qa-v1")
     failures = []
 
     hf_home = Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface"))
@@ -64,14 +72,14 @@ def main():
             failures.append(f"model file hash mismatch: {fname}")
 
     data_root = Path(os.environ.get("LORA_SPEEDRUN_DATA_DIR", REPO_ROOT / "data"))
-    for split_dir, key in (("gsm8k_train", "train_content_sha256"),
-                           ("gsm8k_test", "test_content_sha256")):
+    for split_dir, key in ((f"{DATA_PREFIX}_train", "train_content_sha256"),
+                           (f"{DATA_PREFIX}_test", "test_content_sha256")):
         if key not in pins:
             continue
         d = data_root / split_dir
         if not d.exists():
             failures.append(f"dataset missing: {split_dir}")
-        elif dataset_content_sha(d) != pins[key]:
+        elif dataset_content_sha(d, scheme) != pins[key]:
             failures.append(f"dataset content mismatch: {split_dir}")
 
     if failures:

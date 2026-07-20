@@ -4,7 +4,8 @@
 author: ""            # your name or handle
 github: ""            # your GitHub handle (no @)
 description: ""       # one line: the technique in plain words, e.g. "sequence packing + rsLoRA r=8"
-base_model: Qwen/Qwen2.5-1.5B   # must match spec.yaml exactly — do not change
+track: t1             # t1 = GSM8K/Qwen2.5-1.5B (spec.yaml) · t2 = SQuAD/SmolLM2-1.7B (spec-t2.yaml)
+base_model: Qwen/Qwen2.5-1.5B   # must match your track's spec exactly — t2: HuggingFaceTB/SmolLM2-1.7B
 technique: ""         # short slug: lora / qlora / dora / rslora / custom / ...
 
 # Every hyperparameter someone needs to understand your run. Add keys freely.

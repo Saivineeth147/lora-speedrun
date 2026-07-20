@@ -10,14 +10,27 @@
       "submission": "submissions/000-baseline",
       "description": "Baseline: plain LoRA r=16 on all linear layers, 3 epochs, cosine LR. No tricks.",
       "time_seconds_mean": 716.9,
-      "times_seconds": [727.6, 695.9, 727.2],
-      "accuracies": [0.6005, 0.5951, 0.5861],
-      "seeds": [800001841, 1364826184, 1179115513],
+      "times_seconds": [
+        727.6,
+        695.9,
+        727.2
+      ],
+      "accuracies": [
+        0.6005,
+        0.5951,
+        0.5861
+      ],
+      "seeds": [
+        800001841,
+        1364826184,
+        1179115513
+      ],
       "hardware": "Modal L40S (network-blocked sandbox)",
       "verified_by": "Saivineeth147 (self-verified)",
       "verification_report": "records/verifications/000-baseline.md",
       "pr": null,
-      "notes": "Seed record at track freeze (tag spec-v1-frozen). 3/3 runs clear the 57.0% target."
+      "notes": "Seed record at track freeze (tag spec-v1-frozen). 3/3 runs clear the 57.0% target.",
+      "track": "t1"
     },
     {
       "id": 1,
@@ -28,14 +41,27 @@
       "submission": "submissions/001-saivineeth147",
       "description": "Sequence packing + completion-only loss masking, 2 epochs. Same LoRA config as #0; ~2x faster at higher accuracy.",
       "time_seconds_mean": 364.9,
-      "times_seconds": [359.8, 365.2, 369.7],
-      "accuracies": [0.6164, 0.6065, 0.6111],
-      "seeds": [463953844, 1272526778, 1645798532],
+      "times_seconds": [
+        359.8,
+        365.2,
+        369.7
+      ],
+      "accuracies": [
+        0.6164,
+        0.6065,
+        0.6111
+      ],
+      "seeds": [
+        463953844,
+        1272526778,
+        1645798532
+      ],
       "hardware": "Modal L40S (network-blocked sandbox)",
       "verified_by": "Saivineeth147 (self-verified)",
       "verification_report": "records/verifications/001-saivineeth147.md",
       "pr": null,
-      "notes": "Eliminates the baseline's padding waste (packing) and prompt-token loss (completion-only masking). Adapter identical to #0, so the gain is pure data-pipeline."
+      "notes": "Eliminates the baseline's padding waste (packing) and prompt-token loss (completion-only masking). Adapter identical to #0, so the gain is pure data-pipeline.",
+      "track": "t1"
     }
   ],
   "notable_attempts": []
