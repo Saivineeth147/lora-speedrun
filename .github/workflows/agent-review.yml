@@ -31,6 +31,9 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}   # skip Claude-app OIDC exchange (app not installed)
+          # Fork PR authors have no write access; this is an automation-mode screen with a
+          # fixed prompt (PR content is data, never instructions), so non-write actors are fine.
+          allowed_non_write_users: "*"
           claude_args: '--allowedTools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Read,Grep,Glob"'
           prompt: |
             You are the automated security screener for the LoRA Speedrun benchmark.
