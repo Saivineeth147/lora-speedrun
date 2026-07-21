@@ -42,7 +42,8 @@ can re-verify any record with one command.
 
 <!-- LEADERBOARD:END -->
 
-Full history with verification reports: [records/RECORDS.md](./records/RECORDS.md)
+Full history with verification reports: [records/RECORDS.md](./records/RECORDS.md) ·
+Live leaderboard: [huggingface.co/spaces/vineeth98/lora-speedrun](https://huggingface.co/spaces/vineeth98/lora-speedrun)
 
 ## The tracks
 
