@@ -66,14 +66,20 @@ sequence packing, data subset selection and ordering, custom kernels, when to st
 
 ## Why this exists
 
-LoRA/QLoRA is how most real-world fine-tuning actually happens, and the technique space
-exploded — DoRA, rsLoRA, PiSSA, LoRA+, NEFTune, Unsloth kernels, rank-adaptive methods —
-but there's no adversarial, apples-to-apples arena where these ideas race each other in
-public. Papers report numbers on different models, data, and hardware; nothing is comparable.
+I fine-tune small models on a budget, and I couldn't tell which speedup claims were real.
+Every technique — DoRA, rsLoRA, Unsloth, packing tricks — reports numbers on different
+models, data, and hardware. In practice the claims are unfalsifiable.
 
-The nanoGPT speedrun fixed this for pretraining and produced real science (Muon came out of
-it). This repo does the same for parameter-efficient fine-tuning: one frozen task, one GPU,
-wall-clock time, receipts required.
+The only format I've seen actually settle arguments like that is a frozen task with a
+referee. That's what nanoGPT's speedrun did for pretraining optimizers (Muon came out of
+it). This is the same arena for fine-tuning.
+
+What it builds toward: a verified public record of which training tricks pay for
+themselves in wall-clock and which don't survive replication. Every record has to explain
+its mechanism in its write-up, so the leaderboard doubles as a lab notebook — the
+rejected-variants sections are often as useful as the records. And because tricks can
+overfit one setup, records live on tracks with different model families and task types:
+a technique only proves general by transferring.
 
 ## Quickstart
 
@@ -132,6 +138,11 @@ Liger kernels · fused cross-entropy · smarter warmup for short runs
 Claim one, beat 6m 05s, get your name on the board.
 
 ## FAQ
+
+**Is this LoRa the radio protocol?** No — LoRA ([Low-Rank Adaptation](https://en.wikipedia.org/wiki/LoRA_(machine_learning))),
+the standard cheap way to fine-tune a language model: train a small adapter on top of a
+frozen model. The competition: everyone fine-tunes the same model to the same score on
+the same GPU, and the fastest verified training run holds the record.
 
 **Won't techniques overfit to one model + one task?** That's exactly why there are two
 tracks with different model families and task types — and more will follow the same
