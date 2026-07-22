@@ -71,11 +71,13 @@ def get_modal():
         raise SystemExit("modal not installed — run: pip install modal && modal setup")
 
 
-def build_image(modal):
+def build_image(modal, extra_packages=()):
     lock = REPO_ROOT / "env.lock"
     img = modal.Image.debian_slim(python_version="3.12")
     img = (img.pip_install_from_requirements(str(lock)) if lock.exists()
            else img.pip_install(*BASE_DEPS))
+    if extra_packages:
+        img = img.pip_install(*extra_packages)
     return img.add_local_dir(
         str(REPO_ROOT), remote_path="/repo",
         ignore=["**/.git/**", "**/__pycache__/**", "runs/**", "data/**", "**/.DS_Store"])
@@ -210,9 +212,9 @@ def main():
     modal = get_modal()
     app = modal.App.lookup(APP_NAME, create_if_missing=True)
     volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
-    image = build_image(modal)
 
     if args.prefetch:
+        image = build_image(modal)
         do_prefetch(modal, app, image, volume, args.track or "t1")
         return
     if not args.submission:
@@ -225,6 +227,7 @@ def main():
     track = args.track or sub_cfg.get("track", "t1")
     spec = load_spec(track)
     submission_rel = str(submission)
+    image = build_image(modal, sub_cfg.get("extra_pip_packages", []))
 
     n_runs = args.runs or spec["verification"]["n_runs"]
     seeds = ([int(s) for s in args.seeds.split(",")] if args.seeds
