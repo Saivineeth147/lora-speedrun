@@ -29,7 +29,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "harness"))
-from run_submission import render_report  # noqa: E402  (shares the report format)
+from run_submission import official_train_time, render_report  # noqa: E402  (shared report format + timing rule)
 
 GPU = "L40S"
 APP_NAME = "lora-speedrun"
@@ -261,11 +261,12 @@ def main():
 
     n_passed = sum(r["pass"] for r in runs)
     all_pass = n_passed == len(runs)
+    official_seconds, infra_dropped = official_train_time(runs) if all_pass else (None, [])
     verdict = {
         "n_passed": n_passed,
         "all_runs_passed": all_pass,
-        "mean_train_seconds": (round(sum(r["train_seconds"] for r in runs) / len(runs), 1)
-                               if all_pass else None),
+        "mean_train_seconds": official_seconds,
+        "infra_dropped_runs": infra_dropped,
         "verdict": ("RECORD-ELIGIBLE (all runs passed)" if all_pass
                     else "NOT RECORD-ELIGIBLE (a run failed — see table)"),
     }

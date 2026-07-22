@@ -43,4 +43,16 @@ verification:
   n_runs: 3
   seeds: fresh-per-verification   # chosen by the verifier at rerun time, recorded in the report
   pass_rule: all_runs_must_clear_target
-  official_time: mean_of_runs
+  official_time: mean_of_runs     # after dropping infrastructure-noise outliers (below)
+  # A run whose TRAINING wall-clock exceeds 1.5x the batch median while its accuracy is
+  # normal (it still cleared the target) is an infrastructure I/O stall, not algorithmic
+  # time: its time is dropped from the official mean and the run is re-run. Never drops
+  # below 2 timed runs, and only ever drops an accuracy-passing run — a genuinely slow
+  # algorithm is never hidden. The benchmark measures the algorithm, not the datacenter's
+  # disk on a bad day. Implemented in harness/run_submission.py (official_train_time).
+  infra_outlier_rule: drop_time_and_rerun_if_wallclock_gt_1.5x_batch_median_at_normal_accuracy
+  # Anti-resampling: one verification per code state. Re-verification only after a code
+  # change, and the verifier draws fresh seeds each time — so a submitter cannot re-request
+  # /verify until a lucky batch comes back (that would cherry-pick the clock, not just the
+  # accuracy gate). See JUDGING.md.
+  one_verification_per_code_state: true

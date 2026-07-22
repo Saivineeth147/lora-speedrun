@@ -29,17 +29,43 @@ Every record-attempt PR goes through, in order:
 5. **Adapter audit.** The harness counts every parameter in the saved adapter safetensors
    (cap: 30M) — `modules_to_save` full-layer copies count. Adapter must load in pinned
    `peft` against the frozen base.
-6. **Verdict.** All 3 runs clear target → record if mean time beats the current record;
-   otherwise notable-attempt or reject per the rubric in CONTRIBUTING.md.
+6. **Verdict.** All 3 runs must clear the target. The official time is the **mean of the
+   runs, after dropping any infrastructure-noise outlier** (see *What the official time is*
+   below); it takes the record if it beats the current one, otherwise notable-attempt or
+   reject per the rubric in CONTRIBUTING.md.
 7. **Public report.** The verification report is posted as a PR comment (automatically by
    the `/verify` workflow) and committed to `records/verifications/NNN-handle.md` with the
    verifier's written reasoning. The merge commit links both.
+
+## What the official time is
+
+The ranking quantity gets the same rigor as the accuracy gate — because the number you
+protect (accuracy) is not the number that decides the order (time).
+
+- **Mean of the runs, never the fastest.** A record is the mean of the timed runs, not the
+  single quickest one, so no lucky-fast run stands on its own.
+- **Infrastructure-noise outliers are dropped and re-run.** The timing noise here is
+  one-sided: a shared Modal volume can only ever make a run *slower* (a cold-cache I/O
+  stall), never faster than the algorithm. So a run whose training wall-clock exceeds
+  **1.5× the batch median while its accuracy is normal** is treated as infrastructure noise,
+  not algorithmic time — its time is dropped from the mean and the run is re-run. The rule
+  only ever drops an accuracy-passing run and never leaves fewer than two timed runs, so a
+  genuinely slow submission is never hidden. (This is also why the statistic is the mean and
+  not the raw median: with only three runs the median can discard the *cleanest* run, while
+  the outlier rule removes only the contaminated one.) Implemented in
+  [`harness/run_submission.py`](./harness/run_submission.py) (`official_train_time`).
+- **One verification per code state.** Fresh seeds per verification stop seed-shopping on
+  accuracy — but re-requesting `/verify` until a batch comes back lucky-fast would just move
+  that cherry-pick onto the clock. So a submission is verified once per code state:
+  re-verify only after a code change, and the verifier draws fresh seeds each time.
 
 ## Threat model → countermeasure
 
 | Attack | Countermeasure |
 |---|---|
 | Seed shopping (works on one lucky seed) | Verifier picks 3 fresh seeds at rerun time; all must pass |
+| Batch resampling (re-request `/verify` until a lucky-fast batch) | One verification per code state; verifier draws fresh seeds each time; re-verify only after a code change |
+| Datacenter I/O inflating the timed mean | A run >1.5× the batch median at normal accuracy is dropped from the official time and re-run — see *What the official time is* |
 | Training on the test split | Harness hands `train.py` a directory containing *only* the train split; code review; leakage heuristics (suspiciously high accuracy vs. training time gets extra scrutiny, incl. n-gram overlap spot checks) |
 | "Adapter" that is actually a full fine-tune | Every tensor in the adapter file counts against the 30M cap |
 | Malicious submission code (exfiltration, mining, persistence) | Runs only in a network-blocked Modal sandbox with zero secrets — see SECURITY.md |

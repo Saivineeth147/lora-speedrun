@@ -18,11 +18,11 @@ submission folder and its public verification report.
 
 ## Track 2 — SQuAD v1.1 · SmolLM2-1.7B · target ≥ 75.5% · 1× L40S
 
-**Current record: 11m 08s** by [@Saivineeth147](https://github.com/Saivineeth147) — Track 2 baseline: plain LoRA r=16 on SQuAD, first 20k examples, 1 epoch, full-sequence loss. No tricks.
+**Current record: 8m 45s** by [@Saivineeth147](https://github.com/Saivineeth147) — Track 2 baseline: plain LoRA r=16 on SQuAD, first 20k examples, 1 epoch, full-sequence loss. No tricks.
 
 | # | Date | Author | Train time | GSM8K/EM | Δ | Technique |
 |---|------|--------|-----------|----------|---|-----------|
-| 0 | 2026-07-20 | [@Saivineeth147](https://github.com/Saivineeth147) | 11m 08s | 77.5% | — | Track 2 baseline: plain LoRA r=16 on SQuAD, first 20k examples, 1 epoch, full-sequence loss. No tricks. ([report](records/verifications/t2-000-baseline.md)) |
+| 0 | 2026-07-20 | [@Saivineeth147](https://github.com/Saivineeth147) | 8m 45s | 77.5% | — | Track 2 baseline: plain LoRA r=16 on SQuAD, first 20k examples, 1 epoch, full-sequence loss. No tricks. ([report](records/verifications/t2-000-baseline.md)) |
 
 ## Notable attempts
 
