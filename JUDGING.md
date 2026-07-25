@@ -29,10 +29,10 @@ Every record-attempt PR goes through, in order:
 5. **Adapter audit.** The harness counts every parameter in the saved adapter safetensors
    (cap: 30M) — `modules_to_save` full-layer copies count. Adapter must load in pinned
    `peft` against the frozen base.
-6. **Verdict.** All 3 runs must clear the target. The official time is the **mean of the
-   runs, after dropping any infrastructure-noise outlier** (see *What the official time is*
-   below); it takes the record if it beats the current one, otherwise notable-attempt or
-   reject per the rubric in CONTRIBUTING.md.
+6. **Verdict.** All 3 runs must clear the target. The official time is the **straight mean of
+   the runs**, timed from a warm artifact cache (see *What the official time is* below); it
+   takes the record if it beats the current one, otherwise notable-attempt or reject per the
+   rubric in CONTRIBUTING.md.
 7. **Public report.** The verification report is posted as a PR comment (automatically by
    the `/verify` workflow) and committed to `records/verifications/NNN-handle.md` with the
    verifier's written reasoning. The merge commit links both.
@@ -42,18 +42,23 @@ Every record-attempt PR goes through, in order:
 The ranking quantity gets the same rigor as the accuracy gate — because the number you
 protect (accuracy) is not the number that decides the order (time).
 
-- **Mean of the runs, never the fastest.** A record is the mean of the timed runs, not the
-  single quickest one, so no lucky-fast run stands on its own.
-- **Infrastructure-noise outliers are dropped and re-run.** The timing noise here is
-  one-sided: a shared Modal volume can only ever make a run *slower* (a cold-cache I/O
-  stall), never faster than the algorithm. So a run whose training wall-clock exceeds
-  **1.5× the batch median while its accuracy is normal** is treated as infrastructure noise,
-  not algorithmic time — its time is dropped from the mean and the run is re-run. The rule
-  only ever drops an accuracy-passing run and never leaves fewer than two timed runs, so a
-  genuinely slow submission is never hidden. (This is also why the statistic is the mean and
-  not the raw median: with only three runs the median can discard the *cleanest* run, while
-  the outlier rule removes only the contaminated one.) Implemented in
+- **Straight mean of the runs, never the fastest.** A record is the mean of the timed runs,
+  not the single quickest one, so no lucky-fast run stands on its own.
+- **Timed from a warm cache — infra I/O is kept out at the source, not filtered after.** A
+  fresh sandbox has a cold volume cache, so the model + dataset load inside `train.py` would
+  otherwise pay a one-off cold-read cost that varies with datacenter storage, not with the
+  submission's technique. The harness pre-reads the pinned artifacts into the container
+  **before** starting the clock, so the timed region only ever covers warm training. This
+  replaced an earlier attempt to filter "stall" runs *statistically* after the fact (dropping
+  any run past 1.5× the batch median), which a reviewer — thanks, dipankarsarkar — rightly
+  showed was the wrong tool: the threshold was an uncalibrated round number, a median-relative
+  cutoff fails under correlated stalls, and trimming only the slow tail biases records down.
+  Fixing the measurement boundary removes the noise instead of arguing about how to trim it.
+  Implemented in [`harness/modal_verify.py`](./harness/modal_verify.py) (pre-warm) and
   [`harness/run_submission.py`](./harness/run_submission.py) (`official_train_time`).
+- **Sub-spread gaps are ties.** Residual run-to-run spread after warming is ordinary
+  compute/seed jitter — a few percent. Records whose mean times differ by less than that
+  measured spread are treated as ties, not ranked.
 - **One verification per code state.** Fresh seeds per verification stop seed-shopping on
   accuracy — but re-requesting `/verify` until a batch comes back lucky-fast would just move
   that cherry-pick onto the clock. So a submission is verified once per code state:
@@ -65,7 +70,7 @@ protect (accuracy) is not the number that decides the order (time).
 |---|---|
 | Seed shopping (works on one lucky seed) | Verifier picks 3 fresh seeds at rerun time; all must pass |
 | Batch resampling (re-request `/verify` until a lucky-fast batch) | One verification per code state; verifier draws fresh seeds each time; re-verify only after a code change |
-| Datacenter I/O inflating the timed mean | A run >1.5× the batch median at normal accuracy is dropped from the official time and re-run — see *What the official time is* |
+| Datacenter I/O inflating the timed mean | The clock starts only after the pinned model + data are pre-read into a warm cache, so cold-volume load I/O never enters the timed region — see *What the official time is* |
 | Training on the test split | Harness hands `train.py` a directory containing *only* the train split; code review; leakage heuristics (suspiciously high accuracy vs. training time gets extra scrutiny, incl. n-gram overlap spot checks) |
 | "Adapter" that is actually a full fine-tune | Every tensor in the adapter file counts against the 30M cap |
 | Malicious submission code (exfiltration, mining, persistence) | Runs only in a network-blocked Modal sandbox with zero secrets — see SECURITY.md |

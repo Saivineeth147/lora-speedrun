@@ -148,6 +148,15 @@ def train_run(modal, app, image, volume, spec, track, submission_rel, seed, outd
     sb = make_sandbox(modal, app, image, volume, gpu=GPU, network=False,
                       timeout=cap_s + 1800)
     try:
+        # Pre-warm (UN-timed): a fresh sandbox has a cold volume cache, so the model +
+        # dataset load inside train.py would otherwise pay a one-off cold-read I/O cost
+        # that varies with datacenter storage, not with the submission's technique. Read
+        # the pinned artifacts into the container's page cache here so the clock only ever
+        # covers warm training. Keeps infra I/O out of the number at the source rather than
+        # filtering it after the fact — see JUDGING.md.
+        run_script(sb, f"""
+find {HF_HOME} {DATA}/{prefix}_train -type f -print0 2>/dev/null | xargs -0 cat > /dev/null 2>&1 || true
+""", f"warm:{seed}", exec_timeout=1800)
         t0 = time.monotonic()
         rc, _ = run_script(sb, f"""
 set -e
@@ -160,6 +169,34 @@ python {submission_rel}/train.py --data-dir {DATA}/{prefix}_train --output-dir {
         return rc, round(train_seconds, 1)
     finally:
         sb.terminate()
+
+
+def wait_for_committed_adapter(volume, outdir, timeout=180):
+    """Bridge the train -> eval sandbox handoff.
+
+    A sub-minute training run can finish and terminate before Modal's background commit
+    of the train sandbox's volume writes has landed. The eval sandbox mounts the volume
+    at creation, so launching it too early makes it see a stale tree with no adapter
+    (the `no .safetensors adapter found` failure). Both sandboxes are network-blocked and
+    hold no Modal token, so they can't commit/reload themselves — but the orchestrator
+    can. Poll the committed volume from here until the saved adapter is visible, then let
+    eval proceed. This is measurement-neutral: it happens entirely after the clock stops."""
+    rel = outdir.replace(f"{CACHE}/", "", 1).lstrip("/")
+    deadline = time.monotonic() + timeout
+    while True:
+        # listdir() from the orchestrator reads the volume's latest committed state
+        # directly (same as `modal volume ls`); reload() is container-only and errors here.
+        try:
+            names = [e.path for e in volume.listdir(rel)]
+        except Exception:
+            names = []
+        have_adapter = any(p.endswith("adapter_model.safetensors") for p in names)
+        have_config = any(p.endswith("adapter_config.json") for p in names)
+        if have_adapter and have_config:
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(2)
 
 
 def eval_run(modal, app, image, volume, spec, track, outdir):
@@ -244,6 +281,12 @@ def main():
             runs.append({"seed": seed, "train_seconds": train_seconds,
                          "error": f"train.py exited {rc}", "pass": False})
             continue
+        if not wait_for_committed_adapter(volume, outdir):
+            runs.append({"seed": seed, "train_seconds": train_seconds,
+                         "error": "adapter never became visible on the volume "
+                                  "(commit did not land within the wait window)",
+                         "pass": False})
+            continue
         ev = eval_run(modal, app, image, volume, spec, track, outdir)
         r = {"seed": seed, "train_seconds": train_seconds,
              "accuracy": ev.get("accuracy"), "adapter_params": ev.get("adapter_params"),
@@ -261,12 +304,11 @@ def main():
 
     n_passed = sum(r["pass"] for r in runs)
     all_pass = n_passed == len(runs)
-    official_seconds, infra_dropped = official_train_time(runs) if all_pass else (None, [])
+    official_seconds = official_train_time(runs) if all_pass else None
     verdict = {
         "n_passed": n_passed,
         "all_runs_passed": all_pass,
         "mean_train_seconds": official_seconds,
-        "infra_dropped_runs": infra_dropped,
         "verdict": ("RECORD-ELIGIBLE (all runs passed)" if all_pass
                     else "NOT RECORD-ELIGIBLE (a run failed — see table)"),
     }
