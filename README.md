@@ -15,7 +15,7 @@ Modal's free monthly compute credits cover full runs — so anyone can compete, 
 can re-verify any record with one command.
 
 <p align="center">
-  <img src="docs/leaderboard.png" alt="LoRA Speedrun leaderboard — 11:57 baseline to 1:44 current record (−86%) across four verified records" width="760">
+  <img src="docs/leaderboard.png" alt="LoRA Speedrun leaderboard — 11:57 baseline to 0:44 current record (−94%) across five verified records" width="760">
 </p>
 
 ## Leaderboard
