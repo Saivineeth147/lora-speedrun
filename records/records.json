@@ -158,6 +158,37 @@
       "verification_report": "records/verifications/003-pmigdal.md",
       "pr": 11,
       "notes": "Chunked completion-CE never materializes the 151k-vocab logits tensor. 11m57s -> 1m44s in three days across three records and two authors."
+    },
+    {
+      "id": 4,
+      "track": "t1",
+      "status": "verified",
+      "date": "2026-07-25",
+      "author": "Julien Launay",
+      "github": "slippylolo",
+      "submission": "submissions/004-slippylolo",
+      "description": "0.75-epoch six-target BF16 LoRA: shortest-4k pruning with down_proj dropped (13.76M params), deterministic best-fit packing, per-layer fused base+LoRA-A q/k/v & gate/up GEMMs, chunked completion-only CE.",
+      "time_seconds_mean": 43.9,
+      "times_seconds": [
+        41.7,
+        44.8,
+        45.2
+      ],
+      "accuracies": [
+        0.5890826383623957,
+        0.5898407884761183,
+        0.6080363912054587
+      ],
+      "seeds": [
+        432751258,
+        1600440612,
+        1359428397
+      ],
+      "hardware": "Modal L40S (network-blocked sandbox)",
+      "verified_by": "Saivineeth147",
+      "verification_report": "records/verifications/004-slippylolo.md",
+      "pr": 12,
+      "notes": "Builds on #3: drops down_proj from the LoRA targets (18.46M->13.76M params), keeps the adapter in BF16, best-fit repacks #3's next-fit membership into fewer full blocks, fuses each layer's frozen base + shared-input LoRA-A q/k/v and gate/up projections into one GEMM each, and shortens the schedule to 0.75 epoch at 5e-4. First sub-minute record; exposed and fixed a train->eval volume-commit race in the harness. 104.0s -> 43.9s."
     }
   ],
   "notable_attempts": []
