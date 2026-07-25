@@ -1,0 +1,34 @@
+author: Julien Launay
+github: slippylolo
+description: "0.75-epoch six-target BF16 LoRA with deterministic best-fit packing, fused projections, and chunked completion-only CE"
+track: t1
+base_model: Qwen/Qwen2.5-1.5B
+technique: lora + data-pruning + best-fit-packing + projection-fusion + chunked-completion-ce + 0.75-epoch
+
+hyperparameters:
+  rank: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj]
+  layers: all 28
+  adapter_dtype: bfloat16
+  learning_rate: 5.0e-4
+  schedule: cosine to 5%, 6-step warmup
+  optimizer: adamw fused, betas (0.9, 0.95), no weight decay
+  epochs_or_steps: 0.75 epoch over the seed-dependent packed-block sequence
+  effective_batch_size: 8 packed 1024-token blocks; final batch may be smaller
+  max_seq_len: 1024
+  train_subset: 4,000 shortest examples by tokenized prompt-plus-answer length
+  answer_transform: strip GSM8K calculator annotations
+  packing: deterministic best-fit over the baseline next-fit-emitted membership
+  completion_ce_chunk_rows: 2048
+  gradient_clip_norm: 1.0
+  other: "Frozen q/k/v and gate/up base projections plus shared LoRA-A projections use reversible single-owner packing; the exact pinned model snapshot is resolved offline with no network fallback."
+
+extra_pip_packages: []
+
+self_reported:
+  mean_train_seconds: 51.6
+  accuracies: [0.5852918877937832, 0.5845337376800607, 0.5822592873388931]
+  seeds: [3580952, 705619208, 1674648533]
+  gpu: "NVIDIA L40S (unofficial fixed-candidate measurements)"
