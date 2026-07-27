@@ -55,15 +55,25 @@ def main():
     ap.add_argument("--dump-preds", default=None, help="write per-item predictions JSONL here")
     args = ap.parse_args()
 
-    tok = AutoTokenizer.from_pretrained(args.base_model, padding_side="left")
+    # Resolve model name to cached snapshot path (needed for local_files_only)
+    model_path = args.base_model
+    hf_home = Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface"))
+    model_dir = hf_home / "hub" / ("models--" + args.base_model.replace("/", "--"))
+    snapshots_dir = model_dir / "snapshots"
+    if snapshots_dir.exists():
+        snaps = sorted(snapshots_dir.iterdir())
+        if snaps:
+            model_path = str(snaps[-1])
+    tok = AutoTokenizer.from_pretrained(model_path, padding_side="left", local_files_only=True)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
 
     model = AutoModelForCausalLM.from_pretrained(
-        args.base_model,
+        model_path,
         torch_dtype=torch.bfloat16,
         attn_implementation="sdpa",
         device_map="cuda",
+        local_files_only=True,
     )
     if args.adapter_dir:
         from peft import PeftModel
