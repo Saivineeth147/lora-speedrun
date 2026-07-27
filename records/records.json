@@ -189,6 +189,37 @@
       "verification_report": "records/verifications/004-slippylolo.md",
       "pr": 12,
       "notes": "Builds on #3: drops down_proj from the LoRA targets (18.46M->13.76M params), keeps the adapter in BF16, best-fit repacks #3's next-fit membership into fewer full blocks, fuses each layer's frozen base + shared-input LoRA-A q/k/v and gate/up projections into one GEMM each, and shortens the schedule to 0.75 epoch at 5e-4. First sub-minute record; exposed and fixed a train->eval volume-commit race in the harness. 104.0s -> 43.9s."
+    },
+    {
+      "id": 1,
+      "track": "t2",
+      "status": "verified",
+      "date": "2026-07-27",
+      "author": "Leah Bacon",
+      "github": "abacon",
+      "submission": "submissions/t2-001-bacon",
+      "description": "Track 2 port of the Track 1 stack: shortest-4k pruning, best-fit packing, fused base+LoRA-A GEMMs, chunked completion-only CE, 0.75 epoch on SmolLM2-1.7B.",
+      "time_seconds_mean": 49.5,
+      "times_seconds": [
+        55.6,
+        48.1,
+        44.9
+      ],
+      "accuracies": [
+        0.7741721854304636,
+        0.7672658467360454,
+        0.7754966887417218
+      ],
+      "seeds": [
+        1867645044,
+        318136251,
+        298993731
+      ],
+      "hardware": "Modal L40S (network-blocked sandbox)",
+      "verified_by": "Saivineeth147",
+      "verification_report": "records/verifications/t2-001-bacon.md",
+      "pr": 13,
+      "notes": "Track 2's first outside submission, and the first cross-track port: the Track 1 record #4 stack applied to SmolLM2-1.7B/SQuAD, showing those techniques generalize beyond GSM8K. 525.4s -> 49.5s (-91%). Merged as the submission only: the PR's harness evaluator edits were rejected (unnecessary, and they resolved the model as sorted(snapshots)[-1], bypassing the pinned SHA), as were its hand-written verification report and hand-edited README."
     }
   ],
   "notable_attempts": []
