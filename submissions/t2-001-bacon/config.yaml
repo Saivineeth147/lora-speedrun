@@ -1,0 +1,27 @@
+author: Leah Bacon
+github: abacon
+description: "Track 2 port of 004-slippylolo: shortest-4k BF16 LoRA with best-fit packing, fused projections, and chunked completion-only CE on SQuAD"
+track: t2
+base_model: HuggingFaceTB/SmolLM2-1.7B
+technique: lora + data-pruning + best-fit-packing + projection-fusion + chunked-completion-ce + 0.75-epoch
+
+hyperparameters:
+  rank: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj]
+  layers: all 24
+  adapter_dtype: bfloat16
+  learning_rate: 5.0e-4
+  schedule: cosine to 5%, 6-step warmup
+  optimizer: adamw fused, betas (0.9, 0.95), no weight decay
+  epochs_or_steps: 0.75 epoch over the seed-dependent packed-block sequence
+  effective_batch_size: 8 packed 1024-token blocks; final batch may be smaller
+  max_seq_len: 1024
+  train_subset: 4,000 shortest examples by tokenized prompt-plus-answer length
+  packing: deterministic best-fit over the baseline next-fit-emitted membership
+  completion_ce_chunk_rows: 2048
+  gradient_clip_norm: 1.0
+  other: "Frozen q/k/v and gate/up base projections plus shared LoRA-A projections use reversible single-owner packing; the exact pinned model snapshot is resolved offline with no network fallback."
+
+extra_pip_packages: []
