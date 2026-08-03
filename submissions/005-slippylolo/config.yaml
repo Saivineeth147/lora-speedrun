@@ -1,0 +1,32 @@
+author: Julien Launay
+github: slippylolo
+description: "Direct pinned-Qwen loading with eight full updates, a cached frozen prefix, and four top-layer updates"
+track: t1
+base_model: Qwen/Qwen2.5-1.5B
+technique: lora + bf16-adapter + target-pruning + best-fit-packing + direct-safetensors-qwen + rust-tokenizer + direct-packed-lora + parent-layer-dispatch + true-prefix-retirement + frozen-prefix-cache + lr-area-tail + contiguous-hot-loop + chunked-completion-ce + staged-backward-truncation
+
+hyperparameters:
+  rank: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj]
+  layers: all 28
+  adapter_dtype: bfloat16
+  learning_rate: 8.0e-4
+  schedule: first eight reference updates plus four peak-capped top-one updates
+  optimizer: adamw fused, betas (0.9, 0.95), no weight decay
+  epochs_or_steps: "12 optimizer updates"
+  requested_epoch_fraction: 0.50
+  effective_batch_size: 8 packed blocks
+  max_seq_len: 1024
+  backward_schedule: "0:full|8:top1"
+  other: "Eight full updates followed by four top-one updates at 8e-4; frozen-prefix cache built in one batch; complete standard adapter remains active and is saved"
+
+extra_pip_packages: []
+
+self_reported:
+  mean_train_seconds: 26.833333333333332
+  train_seconds: [27.6, 25.7, 27.2]
+  accuracies: [0.5890826383623957, 0.5868081880212282, 0.5875663381349507]
+  seeds: [1880479851, 1460648624, 1739596261]
+  gpu: "NVIDIA L40S (unofficial fixed-candidate measurements)"
