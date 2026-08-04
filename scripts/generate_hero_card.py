@@ -44,7 +44,22 @@ CARD_LABELS = {
     ("t1", 2): "3k examples, integrated-LR",
     ("t1", 3): "shortest-4k + chunked CE",
     ("t1", 4): "fused 6-target LoRA, 0.75 epoch",
+    ("t1", 5): "direct load + staged backward tail",
 }
+
+# Rows are laid out between the header and the footer. Keep the original 98px pitch
+# while it fits, then tighten it so a growing board never runs into the footer line.
+ROW_TOP = 286
+ROW_PITCH_MAX = 98
+FOOTER_Y = 812
+# A row's bar sits 30px below its label and is 14px tall; leave a gap under the last one.
+ROW_BOTTOM_PAD = 44
+FOOTER_GAP = 52
+
+
+def row_pitch(n_rows):
+    last_label_max = FOOTER_Y - ROW_BOTTOM_PAD - FOOTER_GAP
+    return min(ROW_PITCH_MAX, (last_label_max - ROW_TOP) // max(1, n_rows - 1))
 
 
 def fmt_time(seconds):
@@ -108,7 +123,7 @@ def build_svg(records):
              "hardware  ·  free to attempt", 22, DIM),
     ]
 
-    label_y0, pitch = 286, 98
+    label_y0, pitch = ROW_TOP, row_pitch(len(rows))
     for i, rec in enumerate(rows):
         ly = label_y0 + i * pitch
         by = ly + 30

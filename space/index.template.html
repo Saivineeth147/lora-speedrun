@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base target="_blank">
+<title>LoRA Speedrun — verified wall-clock leaderboard</title>
+<style>
+  :root{--page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;
+        --green:#21d321;--green-dim:#0ca30c;--track:#2c2c2a;--line:#333331}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--page);color:var(--ink2);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px}
+  .wrap{max-width:980px;margin:0 auto}
+  h1{color:var(--ink);font-size:2.1rem;letter-spacing:-.5px}
+  .sub{margin-top:6px}
+  .meta{color:var(--muted);font-size:.86rem;margin-top:4px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-top:22px}
+  h2{color:var(--ink);font-size:1.15rem;margin-bottom:2px}
+  .target{color:var(--muted);font-size:.86rem;margin-bottom:14px}
+  .rec{color:var(--green);font-weight:600;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th{color:var(--muted);text-align:left;font-weight:500;padding:6px 10px 6px 0;border-bottom:1px solid var(--line)}
+  td{padding:9px 10px 9px 0;border-bottom:1px solid #232322;vertical-align:top}
+  tr.current td{color:var(--ink)}
+  tr.current .time{color:var(--green);font-weight:700}
+  .time{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .delta{color:var(--green-dim);white-space:nowrap}
+  a{color:#3987e5;text-decoration:none}
+  a:hover{text-decoration:underline}
+  .bar{height:7px;border-radius:4px;background:var(--track);margin-top:6px;overflow:hidden}
+  .bar>i{display:block;height:100%;border-radius:4px;background:#6e6d68}
+  tr.current .bar>i{background:var(--green-dim)}
+  .cta{margin-top:26px;padding:18px 22px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .cta b{color:var(--green);font-size:1.1rem}
+  footer{color:var(--muted);font-size:.82rem;margin:26px 0 8px}
+  .err{color:#e66767}
+  @media(max-width:640px){.hide-m{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LoRA Speedrun 🏁</h1>
+  <p class="sub">Fastest verified LoRA fine-tune wins. Frozen tasks, one GPU (Modal L40S,
+     network-blocked sandbox), every record re-run <b>3× with fresh seeds</b> by a referee
+     before it counts. No self-reported numbers, ever.</p>
+  <p class="meta">Live from <a href="https://github.com/Saivineeth147/lora-speedrun">github.com/Saivineeth147/lora-speedrun</a>
+     · <span id="stamp">records baked in at __BUILD_STAMP__</span></p>
+
+  <div id="boards"><div class="card">Loading records…</div></div>
+
+  <div class="cta">
+    <b>Beat the record — attempting is free.</b><br>
+    Modal's monthly credits cover full runs on the exact spec hardware. Rules and quickstart:
+    <a href="https://github.com/Saivineeth147/lora-speedrun#quickstart">README</a> ·
+    <a href="https://github.com/Saivineeth147/lora-speedrun/blob/main/TASK.md">TASK.md</a> ·
+    open lanes in the <a href="https://github.com/Saivineeth147/lora-speedrun/issues">issues</a>.
+  </div>
+
+  <footer>Every record row links its full <b>config</b> (all hyperparameters + data choices) and
+    <b>notes</b> (what changed vs. the previous record, and what was tried and rejected).
+    Verification runs happen publicly in <a href="https://github.com/Saivineeth147/lora-speedrun/pulls?q=is%3Apr">PR threads</a>, pass or fail.<br>
+    Verification protocol: <a href="https://github.com/Saivineeth147/lora-speedrun/blob/main/JUDGING.md">JUDGING.md</a>
+    · threat model: <a href="https://github.com/Saivineeth147/lora-speedrun/blob/main/SECURITY.md">SECURITY.md</a>
+    · every report: <a href="https://github.com/Saivineeth147/lora-speedrun/tree/main/records/verifications">records/verifications/</a></footer>
+</div>
+
+<!-- Baked at build time by scripts/render_space.py so the board paints instantly and
+     still renders if the live fetch is blocked, rate-limited, or slow. -->
+<script id="seed-records" type="application/json">__RECORDS_JSON__</script>
+
+<script>
+const GH = "https://github.com/Saivineeth147/lora-speedrun";
+const RAW = "https://raw.githubusercontent.com/Saivineeth147/lora-speedrun/main/records/records.json";
+const TRACKS = {
+  t1: {title:"Track 1 — GSM8K · Qwen2.5-1.5B", target:"target ≥ 57.0% exact-match · data: GSM8K train split only"},
+  t2: {title:"Track 2 — SQuAD v1.1 · SmolLM2-1.7B", target:"target ≥ 75.5% EM · data: SQuAD train split only"},
+};
+const mmss = s => `${Math.floor(s/60)}m ${String(Math.round(s%60)).padStart(2,"0")}s`;
+const pct = a => (100*a.reduce((x,y)=>x+y,0)/a.length).toFixed(1)+"%";
+
+// Fastest verified time wins — never "last row in the file".
+const best = recs => recs.reduce((a,b) => b.time_seconds_mean < a.time_seconds_mean ? b : a);
+
+function render(data){
+  const boards = document.getElementById("boards");
+  boards.innerHTML = "";
+  for (const [tid, meta] of Object.entries(TRACKS)) {
+    const recs = data.records.filter(r=>(r.track||"t1")===tid && r.status==="verified");
+    const maxT = Math.max(...recs.map(r=>r.time_seconds_mean), 1);
+    const cur = recs.length ? best(recs) : null;
+    const card = document.createElement("div");
+    card.className = "card";
+    let rows = "";
+    let prev = null;
+    for (const r of recs) {
+      const delta = prev ? "−"+Math.round(100*(1-r.time_seconds_mean/prev))+"%" : "—";
+      prev = r.time_seconds_mean;
+      const isCur = r===cur;
+      rows += `<tr class="${isCur?"current":""}">
+        <td>#${r.id}</td>
+        <td><a href="https://github.com/${r.github}">@${r.github}</a></td>
+        <td>${r.description}
+            <div class="bar"><i style="width:${100*r.time_seconds_mean/maxT}%"></i></div></td>
+        <td class="time">${mmss(r.time_seconds_mean)}</td>
+        <td class="hide-m">${pct(r.accuracies)}</td>
+        <td class="delta hide-m">${delta}</td>
+        <td class="hide-m" style="white-space:nowrap"><a href="${GH}/blob/main/${r.submission}/config.yaml">config</a> ·
+            <a href="${GH}/blob/main/${r.submission}/NOTES.md">notes</a> ·
+            <a href="${GH}/blob/main/${r.verification_report}">report</a></td>
+      </tr>`;
+    }
+    card.innerHTML = `<h2>${meta.title}</h2><div class="target">${meta.target}</div>
+      <div class="rec">${cur ? `Current record: ${mmss(cur.time_seconds_mean)} by @${cur.github}` : "Open for its first record."}</div>
+      <table><thead><tr><th>#</th><th>author</th><th>technique</th><th>train&nbsp;time</th>
+      <th class="hide-m">score</th><th class="hide-m">Δ</th><th class="hide-m"></th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="7">No entries yet — <a href="${GH}/blob/main/CONTRIBUTING.md">be the first</a>.</td></tr>`}</tbody></table>`;
+    boards.appendChild(card);
+  }
+}
+
+// 1. Paint from the baked records immediately — no blank page, no network needed.
+try {
+  render(JSON.parse(document.getElementById("seed-records").textContent));
+} catch (e) {
+  document.getElementById("boards").innerHTML =
+    `<div class="card err">Couldn't render the baked records (${e}). See the <a href="${GH}">GitHub repo</a>.</div>`;
+}
+
+// 2. Then refresh from the repo, so a new record shows up before the Space is redeployed.
+//    A failure here is harmless: the baked board is already on screen.
+fetch(RAW).then(r=>r.json()).then(data=>{
+  render(data);
+  document.getElementById("stamp").textContent = "live from records.json · " + new Date().toUTCString();
+}).catch(()=>{});
+</script>
+</body>
+</html>

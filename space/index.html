@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base target="_blank">
+<title>LoRA Speedrun — verified wall-clock leaderboard</title>
+<style>
+  :root{--page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;
+        --green:#21d321;--green-dim:#0ca30c;--track:#2c2c2a;--line:#333331}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--page);color:var(--ink2);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px}
+  .wrap{max-width:980px;margin:0 auto}
+  h1{color:var(--ink);font-size:2.1rem;letter-spacing:-.5px}
+  .sub{margin-top:6px}
+  .meta{color:var(--muted);font-size:.86rem;margin-top:4px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-top:22px}
+  h2{color:var(--ink);font-size:1.15rem;margin-bottom:2px}
+  .target{color:var(--muted);font-size:.86rem;margin-bottom:14px}
+  .rec{color:var(--green);font-weight:600;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th{color:var(--muted);text-align:left;font-weight:500;padding:6px 10px 6px 0;border-bottom:1px solid var(--line)}
+  td{padding:9px 10px 9px 0;border-bottom:1px solid #232322;vertical-align:top}
+  tr.current td{color:var(--ink)}
+  tr.current .time{color:var(--green);font-weight:700}
+  .time{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .delta{color:var(--green-dim);white-space:nowrap}
+  a{color:#3987e5;text-decoration:none}
+  a:hover{text-decoration:underline}
+  .bar{height:7px;border-radius:4px;background:var(--track);margin-top:6px;overflow:hidden}
+  .bar>i{display:block;height:100%;border-radius:4px;background:#6e6d68}
+  tr.current .bar>i{background:var(--green-dim)}
+  .cta{margin-top:26px;padding:18px 22px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .cta b{color:var(--green);font-size:1.1rem}
+  footer{color:var(--muted);font-size:.82rem;margin:26px 0 8px}
+  .err{color:#e66767}
+  @media(max-width:640px){.hide-m{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LoRA Speedrun 🏁</h1>
+  <p class="sub">Fastest verified LoRA fine-tune wins. Frozen tasks, one GPU (Modal L40S,
+     network-blocked sandbox), every record re-run <b>3× with fresh seeds</b> by a referee
+     before it counts. No self-reported numbers, ever.</p>
+  <p class="meta">Live from <a href="https://github.com/Saivineeth147/lora-speedrun">github.com/Saivineeth147/lora-speedrun</a>
+     · <span id="stamp">records baked in at 2026-08-04 04:14 UTC</span></p>
+
+  <div id="boards"><div class="card">Loading records…</div></div>
+
+  <div class="cta">
+    <b>Beat the record — attempting is free.</b><br>
+    Modal's monthly credits cover full runs on the exact spec hardware. Rules and quickstart:
+    <a href="https://github.com/Saivineeth147/lora-speedrun#quickstart">README</a> ·
+    <a href="https://github.com/Saivineeth147/lora-speedrun/blob/main/TASK.md">TASK.md</a> ·
+    open lanes in the <a href="https://github.com/Saivineeth147/lora-speedrun/issues">issues</a>.
+  </div>
+
+  <footer>Every record row links its full <b>config</b> (all hyperparameters + data choices) and
+    <b>notes</b> (what changed vs. the previous record, and what was tried and rejected).
+    Verification runs happen publicly in <a href="https://github.com/Saivineeth147/lora-speedrun/pulls?q=is%3Apr">PR threads</a>, pass or fail.<br>
+    Verification protocol: <a href="https://github.com/Saivineeth147/lora-speedrun/blob/main/JUDGING.md">JUDGING.md</a>
+    · threat model: <a href="https://github.com/Saivineeth147/lora-speedrun/blob/main/SECURITY.md">SECURITY.md</a>
+    · every report: <a href="https://github.com/Saivineeth147/lora-speedrun/tree/main/records/verifications">records/verifications/</a></footer>
+</div>
+
+<!-- Baked at build time by scripts/render_space.py so the board paints instantly and
+     still renders if the live fetch is blocked, rate-limited, or slow. -->
+<script id="seed-records" type="application/json">{"records":[{"id":0,"status":"verified","date":"2026-07-18","author":"Saivineeth147","github":"Saivineeth147","submission":"submissions/000-baseline","description":"Baseline: plain LoRA r=16 on all linear layers, 3 epochs, cosine LR. No tricks.","time_seconds_mean":716.9,"times_seconds":[727.6,695.9,727.2],"accuracies":[0.6005,0.5951,0.5861],"seeds":[800001841,1364826184,1179115513],"hardware":"Modal L40S (network-blocked sandbox)","verified_by":"Saivineeth147 (self-verified)","verification_report":"records/verifications/000-baseline.md","pr":null,"notes":"Seed record at track freeze (tag spec-v1-frozen). 3/3 runs clear the 57.0% target.","track":"t1"},{"id":1,"status":"verified","date":"2026-07-18","author":"Saivineeth147","github":"Saivineeth147","submission":"submissions/001-saivineeth147","description":"Sequence packing + completion-only loss masking, 2 epochs. Same LoRA config as #0; ~2x faster at higher accuracy.","time_seconds_mean":364.9,"times_seconds":[359.8,365.2,369.7],"accuracies":[0.6164,0.6065,0.6111],"seeds":[463953844,1272526778,1645798532],"hardware":"Modal L40S (network-blocked sandbox)","verified_by":"Saivineeth147 (self-verified)","verification_report":"records/verifications/001-saivineeth147.md","pr":null,"notes":"Eliminates the baseline's padding waste (packing) and prompt-token loss (completion-only masking). Adapter identical to #0, so the gain is pure data-pipeline.","track":"t1"},{"id":0,"track":"t2","status":"verified","date":"2026-07-20","author":"Saivineeth147","github":"Saivineeth147","submission":"submissions/t2-000-baseline","description":"Track 2 baseline: plain LoRA r=16 on SQuAD, first 20k examples, 1 epoch, full-sequence loss. No tricks.","time_seconds_mean":525.4,"times_seconds":[523.5,527.2,953.4],"infra_dropped_runs":[2],"accuracies":[0.776,0.7762,0.7738],"seeds":[83334717,1182902862,350590137],"hardware":"Modal L40S (network-blocked sandbox)","verified_by":"Saivineeth147 (self-verified)","verification_report":"records/verifications/t2-000-baseline.md","pr":null,"notes":"Seed record at track 2 freeze (tag spec-t2-frozen). Run 3 (953.4s, seed 350590137) was a Modal volume I/O stall \u2014 wall-clock >1.5x the batch median while accuracy stayed normal \u2014 so its TIME is dropped from the official mean as infrastructure noise per the infra-outlier rule (its accuracy still counts). Official time is the mean of the two clean runs (523.5, 527.2 -> 525.4s); to be re-run to restore a clean 3-seed timing set. See issue #7."},{"id":2,"track":"t1","status":"verified","date":"2026-07-20","author":"Piotr Migda\u0142","github":"stared","submission":"submissions/002-pmigdal","description":"One 4e-4 epoch over 3,000 examples with 2x optimizer updates (integrated-LR), 512-token packs. First outside record.","time_seconds_mean":113.0,"times_seconds":[112.4,116.0,110.5],"accuracies":[0.5845,0.5982,0.6042],"seeds":[1230150554,737600345,416179408],"hardware":"Modal L40S (network-blocked sandbox)","verified_by":"Saivineeth147","verification_report":"records/verifications/002-pmigdal.md","pr":10,"notes":"First outside submission. Official rerun (113.0s) beat the self-report (122.2s)."},{"id":3,"track":"t1","status":"verified","date":"2026-07-20","author":"Piotr Migda\u0142","github":"stared","submission":"submissions/003-pmigdal","description":"Shortest-4k data pruning, 1 aggressive-LR epoch, <<...>> annotations stripped, custom GPU-resident packed loop, chunked completion-only CE (no full logits).","time_seconds_mean":104.0,"times_seconds":[105.3,103.4,103.4],"accuracies":[0.6088,0.583,0.6171],"seeds":[1618931918,2048232357,542430346],"hardware":"Modal L40S (network-blocked sandbox)","verified_by":"Saivineeth147","verification_report":"records/verifications/003-pmigdal.md","pr":11,"notes":"Chunked completion-CE never materializes the 151k-vocab logits tensor. 11m57s -> 1m44s in three days across three records and two authors."},{"id":4,"track":"t1","status":"verified","date":"2026-07-25","author":"Julien Launay","github":"slippylolo","submission":"submissions/004-slippylolo","description":"0.75-epoch six-target BF16 LoRA: shortest-4k pruning with down_proj dropped (13.76M params), deterministic best-fit packing, per-layer fused base+LoRA-A q/k/v & gate/up GEMMs, chunked completion-only CE.","time_seconds_mean":43.9,"times_seconds":[41.7,44.8,45.2],"accuracies":[0.5890826383623957,0.5898407884761183,0.6080363912054587],"seeds":[432751258,1600440612,1359428397],"hardware":"Modal L40S (network-blocked sandbox)","verified_by":"Saivineeth147","verification_report":"records/verifications/004-slippylolo.md","pr":12,"notes":"Builds on #3: drops down_proj from the LoRA targets (18.46M->13.76M params), keeps the adapter in BF16, best-fit repacks #3's next-fit membership into fewer full blocks, fuses each layer's frozen base + shared-input LoRA-A q/k/v and gate/up projections into one GEMM each, and shortens the schedule to 0.75 epoch at 5e-4. First sub-minute record; exposed and fixed a train->eval volume-commit race in the harness. 104.0s -> 43.9s."},{"id":1,"track":"t2","status":"verified","date":"2026-07-27","author":"Leah Bacon","github":"abacon","submission":"submissions/t2-001-bacon","description":"Track 2 port of the Track 1 stack: shortest-4k pruning, best-fit packing, fused base+LoRA-A GEMMs, chunked completion-only CE, 0.75 epoch on SmolLM2-1.7B.","time_seconds_mean":49.5,"times_seconds":[55.6,48.1,44.9],"accuracies":[0.7741721854304636,0.7672658467360454,0.7754966887417218],"seeds":[1867645044,318136251,298993731],"hardware":"Modal L40S (network-blocked sandbox)","verified_by":"Saivineeth147","verification_report":"records/verifications/t2-001-bacon.md","pr":13,"notes":"Track 2's first outside submission, and the first cross-track port: the Track 1 record #4 stack applied to SmolLM2-1.7B/SQuAD, showing those techniques generalize beyond GSM8K. 525.4s -> 49.5s (-91%). Merged as the submission only: the PR's harness evaluator edits were rejected (unnecessary, and they resolved the model as sorted(snapshots)[-1], bypassing the pinned SHA), as were its hand-written verification report and hand-edited README."},{"id":5,"track":"t1","status":"verified","date":"2026-08-03","author":"Julien Launay","github":"slippylolo","submission":"submissions/005-slippylolo","description":"Direct-from-safetensors Qwen load with a warmed page cache, then 12 optimizer updates: 8 full-network, then 4 through only the top decoder layer over a cached BF16 frozen-prefix boundary.","time_seconds_mean":21.6,"times_seconds":[22.0,21.2,21.5],"accuracies":[0.579226686884003,0.5905989385898408,0.5708870356330553],"seeds":[1865039302,43733957,163976044],"hardware":"Modal L40S (network-blocked sandbox)","verified_by":"Saivineeth147","verification_report":"records/verifications/005-slippylolo.md","pr":14,"notes":"Builds on #4: loads the pinned Qwen snapshot directly from safetensors into a meta-constructed model while a background read warms the file, then caps training at 12 updates - 8 full backward passes, then a one-time batched materialization of the frozen lower-27-layer boundary activations (BF16 cache) and 4 updates that backprop only through layer 27. Active params drop 13,271,040 -> 491,520 at the transition while the exported adapter stays a full 13,762,560-param 28-layer PEFT LoRA. 43.9s -> 21.6s (-51%). Thinnest margin yet: run 3 cleared the 57.0% target by 0.09pp (~1.2 problems); see the report."}],"notable_attempts":[]}</script>
+
+<script>
+const GH = "https://github.com/Saivineeth147/lora-speedrun";
+const RAW = "https://raw.githubusercontent.com/Saivineeth147/lora-speedrun/main/records/records.json";
+const TRACKS = {
+  t1: {title:"Track 1 — GSM8K · Qwen2.5-1.5B", target:"target ≥ 57.0% exact-match · data: GSM8K train split only"},
+  t2: {title:"Track 2 — SQuAD v1.1 · SmolLM2-1.7B", target:"target ≥ 75.5% EM · data: SQuAD train split only"},
+};
+const mmss = s => `${Math.floor(s/60)}m ${String(Math.round(s%60)).padStart(2,"0")}s`;
+const pct = a => (100*a.reduce((x,y)=>x+y,0)/a.length).toFixed(1)+"%";
+
+// Fastest verified time wins — never "last row in the file".
+const best = recs => recs.reduce((a,b) => b.time_seconds_mean < a.time_seconds_mean ? b : a);
+
+function render(data){
+  const boards = document.getElementById("boards");
+  boards.innerHTML = "";
+  for (const [tid, meta] of Object.entries(TRACKS)) {
+    const recs = data.records.filter(r=>(r.track||"t1")===tid && r.status==="verified");
+    const maxT = Math.max(...recs.map(r=>r.time_seconds_mean), 1);
+    const cur = recs.length ? best(recs) : null;
+    const card = document.createElement("div");
+    card.className = "card";
+    let rows = "";
+    let prev = null;
+    for (const r of recs) {
+      const delta = prev ? "−"+Math.round(100*(1-r.time_seconds_mean/prev))+"%" : "—";
+      prev = r.time_seconds_mean;
+      const isCur = r===cur;
+      rows += `<tr class="${isCur?"current":""}">
+        <td>#${r.id}</td>
+        <td><a href="https://github.com/${r.github}">@${r.github}</a></td>
+        <td>${r.description}
+            <div class="bar"><i style="width:${100*r.time_seconds_mean/maxT}%"></i></div></td>
+        <td class="time">${mmss(r.time_seconds_mean)}</td>
+        <td class="hide-m">${pct(r.accuracies)}</td>
+        <td class="delta hide-m">${delta}</td>
+        <td class="hide-m" style="white-space:nowrap"><a href="${GH}/blob/main/${r.submission}/config.yaml">config</a> ·
+            <a href="${GH}/blob/main/${r.submission}/NOTES.md">notes</a> ·
+            <a href="${GH}/blob/main/${r.verification_report}">report</a></td>
+      </tr>`;
+    }
+    card.innerHTML = `<h2>${meta.title}</h2><div class="target">${meta.target}</div>
+      <div class="rec">${cur ? `Current record: ${mmss(cur.time_seconds_mean)} by @${cur.github}` : "Open for its first record."}</div>
+      <table><thead><tr><th>#</th><th>author</th><th>technique</th><th>train&nbsp;time</th>
+      <th class="hide-m">score</th><th class="hide-m">Δ</th><th class="hide-m"></th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="7">No entries yet — <a href="${GH}/blob/main/CONTRIBUTING.md">be the first</a>.</td></tr>`}</tbody></table>`;
+    boards.appendChild(card);
+  }
+}
+
+// 1. Paint from the baked records immediately — no blank page, no network needed.
+try {
+  render(JSON.parse(document.getElementById("seed-records").textContent));
+} catch (e) {
+  document.getElementById("boards").innerHTML =
+    `<div class="card err">Couldn't render the baked records (${e}). See the <a href="${GH}">GitHub repo</a>.</div>`;
+}
+
+// 2. Then refresh from the repo, so a new record shows up before the Space is redeployed.
+//    A failure here is harmless: the baked board is already on screen.
+fetch(RAW).then(r=>r.json()).then(data=>{
+  render(data);
+  document.getElementById("stamp").textContent = "live from records.json · " + new Date().toUTCString();
+}).catch(()=>{});
+</script>
+</body>
+</html>

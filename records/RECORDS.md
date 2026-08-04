@@ -7,7 +7,7 @@ submission folder and its public verification report.
 
 ## Track 1 — GSM8K · Qwen2.5-1.5B · target ≥ 57.0% · 1× L40S
 
-**Current record: 0m 44s** by [@slippylolo](https://github.com/slippylolo) — 0.75-epoch six-target BF16 LoRA: shortest-4k pruning with down_proj dropped (13.76M params), deterministic best-fit packing, per-layer fused base+LoRA-A q/k/v & gate/up GEMMs, chunked completion-only CE.
+**Current record: 0m 22s** by [@slippylolo](https://github.com/slippylolo) — Direct-from-safetensors Qwen load with a warmed page cache, then 12 optimizer updates: 8 full-network, then 4 through only the top decoder layer over a cached BF16 frozen-prefix boundary.
 
 | # | Date | Author | Train time | GSM8K/EM | Δ | Technique |
 |---|------|--------|-----------|----------|---|-----------|
@@ -16,6 +16,7 @@ submission folder and its public verification report.
 | 2 | 2026-07-20 | [@stared](https://github.com/stared) | 1m 53s | 59.6% | −69% | One 4e-4 epoch over 3,000 examples with 2x optimizer updates (integrated-LR), 512-token packs. First outside record. ([report](records/verifications/002-pmigdal.md)) |
 | 3 | 2026-07-20 | [@stared](https://github.com/stared) | 1m 44s | 60.3% | −8% | Shortest-4k data pruning, 1 aggressive-LR epoch, <<...>> annotations stripped, custom GPU-resident packed loop, chunked completion-only CE (no full logits). ([report](records/verifications/003-pmigdal.md)) |
 | 4 | 2026-07-25 | [@slippylolo](https://github.com/slippylolo) | 0m 44s | 59.6% | −58% | 0.75-epoch six-target BF16 LoRA: shortest-4k pruning with down_proj dropped (13.76M params), deterministic best-fit packing, per-layer fused base+LoRA-A q/k/v & gate/up GEMMs, chunked completion-only CE. ([report](records/verifications/004-slippylolo.md)) |
+| 5 | 2026-08-03 | [@slippylolo](https://github.com/slippylolo) | 0m 22s | 58.0% | −51% | Direct-from-safetensors Qwen load with a warmed page cache, then 12 optimizer updates: 8 full-network, then 4 through only the top decoder layer over a cached BF16 frozen-prefix boundary. ([report](records/verifications/005-slippylolo.md)) |
 
 ## Track 2 — SQuAD v1.1 · SmolLM2-1.7B · target ≥ 75.5% · 1× L40S
 
