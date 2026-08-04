@@ -1,0 +1,31 @@
+author: Shravan Doda
+github: shravandoda
+description: "Liger fused kernels with a larger microbatch and unchanged effective batch size."
+track: t1
+base_model: Qwen/Qwen2.5-1.5B
+technique: lora + packing + completion-only-masking + liger + larger-microbatch
+
+hyperparameters:
+  rank: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+  learning_rate: 2.0e-4
+  schedule: cosine, warmup_ratio 0.03
+  optimizer: adamw_torch_fused
+  epochs_or_steps: 2 epochs
+  microbatch_size: 8 packs
+  gradient_accumulation_steps: 4
+  effective_batch_size: 32 packs (8 x grad_accum 4)
+  pack_len: 1024
+  loss: completion-only (prompt tokens masked to -100)
+  kernels: Liger RoPE, RMSNorm, SwiGLU, and fused linear cross-entropy
+  max_seq_len: 1024 (packed)
+
+extra_pip_packages: [liger-kernel==0.8.0]
+
+self_reported:
+  mean_train_seconds: 321.1
+  accuracies: [0.6141015921152388]
+  seeds: [42]
+  gpu: "Modal L40S (one run; three-seed maintainer verification pending)"
